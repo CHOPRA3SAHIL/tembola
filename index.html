@@ -1,0 +1,2292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Housie Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .kitty-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .kitty-section h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .kitty-total {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .game-type-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .game-type-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .game-type-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .game-type-header input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .game-type-header label {
+            cursor: pointer;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .game-type-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding-left: 30px;
+        }
+
+        .game-type-inputs input {
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .game-type-inputs input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        .game-type-card:has(input[type="checkbox"]:not(:checked)) .game-type-inputs {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .player-input-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .player-input-card:hover {
+            border-color: #667eea;
+        }
+
+        .player-input-card h4 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .player-input-card input {
+            margin-bottom: 8px;
+        }
+
+        .ticket {
+            background: #fff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .ticket-header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .ticket-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .ticket-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .ticket-cell:not(:empty):hover {
+            transform: scale(1.1);
+            border-color: #667eea;
+        }
+
+        .ticket-cell.marked {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .number-board {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .number-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            font-size: 12px;
+        }
+
+        .number-cell.called {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .winner-item {
+            background: #f8f8f8;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .winner-badge {
+            background: #4caf50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .controls .btn {
+            flex: 1;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .player-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .player-item {
+            background: #f8f8f8;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .game-status {
+            text-align: center;
+            padding: 15px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .current-number {
+            font-size: 48px;
+            font-weight: 700;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .claims-container {
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .progress-item {
+            margin-bottom: 12px;
+        }
+
+        .progress-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .progress-fill.low {
+            background: linear-gradient(135deg, #f44336 0%, #e91e63 100%);
+        }
+
+        .progress-fill.medium {
+            background: linear-gradient(135deg, #ff9800 0%, #ffc107 100%);
+        }
+
+        .progress-fill.high {
+            background: linear-gradient(135deg, #4caf50 0%, #8bc34a 100%);
+        }
+
+        .voice-mode-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .voice-mode-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .voice-mode-group input[type="radio"] {
+            margin-right: 5px;
+        }
+
+        .winner-summary {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .winner-summary h3 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .winner-summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #c8e6c9;
+        }
+
+        .winner-summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .theme-btn {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .theme-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        /* Classic Theme */
+        .ticket.theme-classic {
+            background: #fff;
+            border: 2px solid #333;
+        }
+
+        .ticket.theme-classic .ticket-cell {
+            border-color: #333;
+            background: #fff;
+        }
+
+        .ticket.theme-classic .ticket-cell.marked {
+            background: #ff6b6b;
+            color: white;
+            border-color: #ff6b6b;
+        }
+
+        /* Neon Theme */
+        .ticket.theme-neon {
+            background: #1a1a2e;
+            border: 2px solid #16213e;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+        }
+
+        .ticket.theme-neon .ticket-header {
+            color: #0fff50;
+            border-bottom-color: #16213e;
+        }
+
+        .ticket.theme-neon .ticket-cell {
+            border-color: #16213e;
+            background: #0f3460;
+            color: #00fff0;
+            font-weight: bold;
+        }
+
+        .ticket.theme-neon .ticket-cell.marked {
+            background: #e94560;
+            color: white;
+            border-color: #e94560;
+            box-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+        }
+
+        /* Ocean Theme */
+        .ticket.theme-ocean {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 2px solid #1976d2;
+        }
+
+        .ticket.theme-ocean .ticket-header {
+            color: #0d47a1;
+            border-bottom-color: #1976d2;
+        }
+
+        .ticket.theme-ocean .ticket-cell {
+            border-color: #64b5f6;
+            background: rgba(255, 255, 255, 0.8);
+            color: #0d47a1;
+        }
+
+        .ticket.theme-ocean .ticket-cell.marked {
+            background: #1976d2;
+            color: white;
+            border-color: #1976d2;
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 480px) {
+            .ticket-cell {
+                font-size: 12px;
+            }
+            
+            .number-cell {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎱 Housie Game</h1>
+        </div>
+
+        <!-- Landing Page -->
+        <div id="landingPage" class="card">
+            <h2 style="text-align: center; margin-bottom: 20px;">Welcome to Housie!</h2>
+            <button class="btn btn-primary" onclick="showAdminSetup()">Start New Game (Admin)</button>
+            <button class="btn btn-secondary" onclick="showJoinGame()">Join Game (Player)</button>
+            <button class="btn btn-secondary" onclick="resumeAdmin()">Resume Game (Admin)</button>
+        </div>
+
+        <!-- Admin Setup -->
+        <div id="adminSetup" class="card hidden">
+            <h2 style="margin-bottom: 20px;">Game Setup</h2>
+            
+            <div class="kitty-section">
+                <h3>Prize Pool Setup</h3>
+                <div class="input-group">
+                    <label>Total Kitty Amount (₹):</label>
+                    <input type="number" id="kittyAmount" min="0" value="1000" onchange="updatePrizeDistribution()">
+                </div>
+                <div class="input-group">
+                    <label>Distribution Mode:</label>
+                    <select id="distributionMode" onchange="toggleDistributionMode()">
+                        <option value="percentage">Percentage Based</option>
+                        <option value="manual">Manual Entry</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Select Game Types & Configure Prizes:</label>
+                <div id="gameTypesContainer">
+                    <!-- Game types will be added here by JavaScript -->
+                </div>
+                <div class="kitty-total" id="totalDistributed">Total Distributed: ₹0</div>
+            </div>
+
+            <div class="input-group">
+                <label>Number of Players:</label>
+                <input type="number" id="playerCount" min="2" max="50" value="4">
+            </div>
+
+            <button class="btn btn-primary" onclick="setupPlayers()">Next: Add Players</button>
+            <button class="btn btn-secondary" onclick="showLanding()">Back</button>
+        </div>
+
+        <!-- Player Registration -->
+        <div id="playerRegistration" class="card hidden">
+            <h2 style="margin-bottom: 20px;">Add Players</h2>
+            <div id="playerInputs"></div>
+            <button class="btn btn-primary" onclick="startGame()">Generate Tickets & Start</button>
+            <button class="btn btn-secondary" onclick="showAdminSetup()">Back</button>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="adminDashboard" class="card hidden">
+            <h2 style="text-align: center; margin-bottom: 20px;">Admin Dashboard</h2>
+            
+            <div class="game-status">
+                <div>Called Numbers: <span id="calledCount">0</span>/90</div>
+                <div class="current-number" id="currentNumber">--</div>
+                <div id="lastNumbers" style="font-size: 14px; color: #666;"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" onclick="callNumber()">Call Number</button>
+                <button class="btn btn-secondary" onclick="toggleAutoPlay()">
+                    <span id="autoPlayText">Auto Play</span>
+                </button>
+            </div>
+
+            <div class="input-group">
+                <label>Voice Settings:</label>
+                <select id="voiceSelect" onchange="updateVoiceSettings()">
+                    <!-- Voice options will be populated dynamically -->
+                </select>
+                <div class="voice-mode-group" style="margin-top: 10px;">
+                    <label>
+                        <input type="radio" name="voiceMode" value="number" checked>
+                        Number only (e.g., "42")
+                    </label>
+                    <label>
+                        <input type="radio" name="voiceMode" value="words">
+                        In words (e.g., "four two")
+                    </label>
+                    <label>
+                        <input type="radio" name="voiceMode" value="full">
+                        Full style (e.g., "eight zero eighty")
+                    </label>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Auto Play Interval (seconds):</label>
+                <input type="number" id="autoInterval" min="3" max="30" value="5">
+            </div>
+
+            <div class="number-board" id="numberBoard"></div>
+
+            <button class="btn btn-success" onclick="showWinners()">View Winners</button>
+            <button class="btn btn-secondary" onclick="showPlayers()">View Players</button>
+            <button class="btn btn-danger" onclick="endGame()">End Game</button>
+        </div>
+
+        <!-- Player View -->
+        <div id="playerView" class="hidden">
+            <div class="card">
+                <h2 style="text-align: center; margin-bottom: 20px;" id="playerName"></h2>
+                <div id="playerTicket"></div>
+                <div id="winStatus" style="text-align: center; margin-top: 20px;"></div>
+            </div>
+        </div>
+
+        <!-- Join Game -->
+        <div id="joinGame" class="card hidden">
+            <h2 style="margin-bottom: 20px;">Join Game</h2>
+            <div class="input-group">
+                <label>Enter Your Phone Number:</label>
+                <input type="tel" id="joinPhone" placeholder="Enter phone number">
+            </div>
+            <button class="btn btn-primary" onclick="joinWithPhone()">View My Ticket</button>
+            <button class="btn btn-secondary" onclick="showLanding()">Back</button>
+        </div>
+
+        <!-- Modals -->
+        <div id="winnersModal" class="modal">
+            <div class="modal-content">
+                <h2 style="margin-bottom: 20px;">Winners</h2>
+                <div id="winnersList"></div>
+                <div id="winnersSummary" class="winner-summary" style="display: none;">
+                    <h3>Player-wise Summary</h3>
+                    <div id="winnersSummaryList"></div>
+                </div>
+                <button class="btn btn-secondary" onclick="closeModal('winnersModal')">Close</button>
+            </div>
+        </div>
+
+        <div id="playersModal" class="modal">
+            <div class="modal-content">
+                <h2 style="margin-bottom: 20px;">Players</h2>
+                <div id="playersList" class="player-list"></div>
+                <button class="btn btn-secondary" onclick="closeModal('playersModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let gameState = {
+            gameTypes: [],
+            players: [],
+            calledNumbers: [],
+            winners: {},
+            isAutoPlay: false,
+            autoPlayInterval: null,
+            tickets: {},
+            prizes: {},
+            kittyAmount: 1000,
+            distributionMode: 'percentage'
+        };
+
+        // Number to words mapping
+        const numberWords = {
+            0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four',
+            5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine'
+        };
+
+        // All available game types with default percentages
+        const allGameTypes = [
+            { id: 'firstFive', name: 'First Five', description: 'First 5 numbers on ticket', defaultPercentage: 5 },
+            { id: 'earlyFive', name: 'Early Five', description: 'Any 5 numbers called', defaultPercentage: 5 },
+            { id: 'topLine', name: 'Top Line', description: 'Complete first row', defaultPercentage: 10 },
+            { id: 'middleLine', name: 'Middle Line', description: 'Complete second row', defaultPercentage: 10 },
+            { id: 'bottomLine', name: 'Bottom Line', description: 'Complete third row', defaultPercentage: 10 },
+            { id: 'corners', name: 'Four Corners', description: 'All 4 corner numbers', defaultPercentage: 8 },
+            { id: 'breakfast', name: 'Breakfast', description: 'First line (same as top line)', defaultPercentage: 7 },
+            { id: 'lunch', name: 'Lunch', description: 'Second line (same as middle line)', defaultPercentage: 7 },
+            { id: 'dinner', name: 'Dinner', description: 'Third line (same as bottom line)', defaultPercentage: 7 },
+            { id: 'fullHouse', name: 'Full House', description: 'All numbers on ticket', defaultPercentage: 25 },
+            { id: 'house1', name: 'House 1', description: 'All numbers on ticket (alternative full house)', defaultPercentage: 3 },
+            { id: 'house2', name: 'House 2', description: 'All numbers on ticket (alternative full house)', defaultPercentage: 3 },
+            { id: 'firstTwoLines', name: 'First Two Lines', description: 'Complete first and second rows', defaultPercentage: 0 },
+            { id: 'lastTwoLines', name: 'Last Two Lines', description: 'Complete second and third rows', defaultPercentage: 0 },
+            { id: 'centerColumn', name: 'Center Column', description: 'All numbers in 5th column', defaultPercentage: 0 },
+            { id: 'bullsEye', name: "Bull's Eye", description: 'Center number of ticket', defaultPercentage: 0 }
+        ];
+
+        // Initialize
+        function init() {
+            // Populate game types
+            const container = document.getElementById('gameTypesContainer');
+            if (container) {
+                container.innerHTML = '';
+                
+                allGameTypes.forEach(gameType => {
+                    const div = document.createElement('div');
+                    div.className = 'game-type-card';
+                    div.innerHTML = `
+                        <div class="game-type-header">
+                            <input type="checkbox" id="${gameType.id}" ${gameType.defaultPercentage > 0 ? 'checked' : ''} onchange="updatePrizeDistribution()">
+                            <label for="${gameType.id}">${gameType.name}</label>
+                        </div>
+                        <div class="game-type-inputs">
+                            <div>
+                                <label style="font-size: 12px; color: #666;">Percentage</label>
+                                <input type="number" id="percentage_${gameType.id}" value="${gameType.defaultPercentage}" min="0" max="100" onchange="updatePrizeDistribution()">
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: #666;">Prize ₹</label>
+                                <input type="number" id="prize_${gameType.id}" value="0" min="0" readonly>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+                
+                // Initial distribution calculation
+                updatePrizeDistribution();
+            }
+
+            // Load voices
+            loadVoices();
+
+            // Check URL parameters for ticket data
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedData = urlParams.get('data');
+            
+            if (encodedData) {
+                try {
+                    // Decode ticket data
+                    const ticketData = JSON.parse(atob(encodedData));
+                    
+                    // Show player view directly
+                    hideAll();
+                    document.getElementById('playerView').classList.remove('hidden');
+                    document.getElementById('playerName').textContent = ticketData.name;
+                    
+                    // Store selected games and prizes in session
+                    window.selectedGames = ticketData.games || [];
+                    window.gamePrizes = ticketData.prizes || {};
+                    
+                    // Display ticket
+                    displayPlayerTicketDirect(ticketData.ticket, ticketData.phone);
+                    
+                    return;
+                } catch (e) {
+                    console.error('Error decoding ticket data:', e);
+                }
+            }
+
+            // Check if there's a game in progress (for admin)
+            const savedGame = localStorage.getItem('housieGame');
+            if (savedGame) {
+                gameState = JSON.parse(savedGame);
+            }
+            
+            // Initialize number board
+            initNumberBoard();
+        }
+
+        // Load available voices
+        function loadVoices() {
+            if ('speechSynthesis' in window) {
+                const voiceSelect = document.getElementById('voiceSelect');
+                
+                function populateVoices() {
+                    const voices = speechSynthesis.getVoices();
+                    voiceSelect.innerHTML = '';
+                    
+                    // Group voices by language
+                    const englishVoices = voices.filter(voice => voice.lang.startsWith('en'));
+                    
+                    // Try to find good quality voices
+                    const femaleVoices = englishVoices.filter(v => 
+                        v.name.toLowerCase().includes('female') || 
+                        v.name.toLowerCase().includes('woman') ||
+                        v.name.toLowerCase().includes('samantha') ||
+                        v.name.toLowerCase().includes('victoria') ||
+                        v.name.toLowerCase().includes('karen') ||
+                        v.name.toLowerCase().includes('moira')
+                    );
+                    
+                    const maleVoices = englishVoices.filter(v => 
+                        v.name.toLowerCase().includes('male') || 
+                        v.name.toLowerCase().includes('man') ||
+                        v.name.toLowerCase().includes('daniel') ||
+                        v.name.toLowerCase().includes('alex') ||
+                        v.name.toLowerCase().includes('rishi')
+                    );
+                    
+                    // Add voices to select
+                    if (femaleVoices.length > 0) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = 'Female Voices';
+                        femaleVoices.forEach((voice, i) => {
+                            const option = document.createElement('option');
+                            option.value = voice.name;
+                            option.textContent = voice.name;
+                            if (i === 0) option.selected = true;
+                            optgroup.appendChild(option);
+                        });
+                        voiceSelect.appendChild(optgroup);
+                    }
+                    
+                    if (maleVoices.length > 0) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = 'Male Voices';
+                        maleVoices.forEach(voice => {
+                            const option = document.createElement('option');
+                            option.value = voice.name;
+                            option.textContent = voice.name;
+                            optgroup.appendChild(option);
+                        });
+                        voiceSelect.appendChild(optgroup);
+                    }
+                    
+                    // Add remaining English voices
+                    const otherVoices = englishVoices.filter(v => 
+                        !femaleVoices.includes(v) && !maleVoices.includes(v)
+                    );
+                    
+                    if (otherVoices.length > 0) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = 'Other Voices';
+                        otherVoices.forEach(voice => {
+                            const option = document.createElement('option');
+                            option.value = voice.name;
+                            option.textContent = voice.name;
+                            optgroup.appendChild(option);
+                        });
+                        voiceSelect.appendChild(optgroup);
+                    }
+                }
+                
+                // Populate voices when they're loaded
+                if (speechSynthesis.getVoices().length > 0) {
+                    populateVoices();
+                } else {
+                    speechSynthesis.onvoiceschanged = populateVoices;
+                }
+            }
+        }
+
+        // Update voice settings
+        function updateVoiceSettings() {
+            // This will be used when speaking numbers
+        }
+
+        // Toggle distribution mode
+        function toggleDistributionMode() {
+            const mode = document.getElementById('distributionMode').value;
+            
+            allGameTypes.forEach(gameType => {
+                const percentageInput = document.getElementById(`percentage_${gameType.id}`);
+                const prizeInput = document.getElementById(`prize_${gameType.id}`);
+                
+                if (mode === 'percentage') {
+                    percentageInput.readOnly = false;
+                    prizeInput.readOnly = true;
+                } else {
+                    percentageInput.readOnly = true;
+                    prizeInput.readOnly = false;
+                }
+            });
+            
+            if (mode === 'percentage') {
+                updatePrizeDistribution();
+            }
+        }
+
+        // Update prize distribution
+        function updatePrizeDistribution() {
+            const kittyAmount = parseFloat(document.getElementById('kittyAmount').value) || 0;
+            const mode = document.getElementById('distributionMode').value;
+            
+            let totalDistributed = 0;
+            
+            if (mode === 'percentage') {
+                let totalPercentage = 0;
+                
+                // Calculate total percentage of selected games
+                allGameTypes.forEach(gameType => {
+                    const checkbox = document.getElementById(gameType.id);
+                    if (checkbox && checkbox.checked) {
+                        const percentage = parseFloat(document.getElementById(`percentage_${gameType.id}`).value) || 0;
+                        totalPercentage += percentage;
+                    }
+                });
+                
+                // Update prize amounts
+                allGameTypes.forEach(gameType => {
+                    const checkbox = document.getElementById(gameType.id);
+                    const prizeInput = document.getElementById(`prize_${gameType.id}`);
+                    
+                    if (checkbox && checkbox.checked) {
+                        const percentage = parseFloat(document.getElementById(`percentage_${gameType.id}`).value) || 0;
+                        const prize = Math.round((kittyAmount * percentage) / 100);
+                        prizeInput.value = prize;
+                        totalDistributed += prize;
+                    } else {
+                        prizeInput.value = 0;
+                    }
+                });
+            } else {
+                // Manual mode - calculate total from prize inputs
+                allGameTypes.forEach(gameType => {
+                    const checkbox = document.getElementById(gameType.id);
+                    if (checkbox && checkbox.checked) {
+                        const prize = parseFloat(document.getElementById(`prize_${gameType.id}`).value) || 0;
+                        totalDistributed += prize;
+                    }
+                });
+            }
+            
+            // Update total distributed display
+            const totalElement = document.getElementById('totalDistributed');
+            totalElement.textContent = `Total Distributed: ₹${totalDistributed}`;
+            
+            if (totalDistributed > kittyAmount) {
+                totalElement.style.color = '#f44336';
+            } else {
+                totalElement.style.color = '#4caf50';
+            }
+        }
+
+        // Navigation functions
+        function showLanding() {
+            hideAll();
+            document.getElementById('landingPage').classList.remove('hidden');
+        }
+
+        function showAdminSetup() {
+            hideAll();
+            document.getElementById('adminSetup').classList.remove('hidden');
+        }
+
+        function showJoinGame() {
+            hideAll();
+            document.getElementById('joinGame').classList.remove('hidden');
+        }
+
+        function hideAll() {
+            document.querySelectorAll('#landingPage, #adminSetup, #playerRegistration, #adminDashboard, #playerView, #joinGame').forEach(el => {
+                el.classList.add('hidden');
+            });
+        }
+
+        // Resume admin game
+        function resumeAdmin() {
+            const savedGame = localStorage.getItem('housieGame');
+            if (!savedGame) {
+                alert('No game in progress!');
+                return;
+            }
+            
+            gameState = JSON.parse(savedGame);
+            hideAll();
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            
+            // Restore board state
+            initNumberBoard();
+            updateAdminDisplay();
+        }
+
+        // Update admin display
+        function updateAdminDisplay() {
+            // Update called numbers on board
+            gameState.calledNumbers.forEach(num => {
+                const cell = document.getElementById(`num-${num}`);
+                if (cell) cell.classList.add('called');
+            });
+            
+            // Update counts and current number
+            document.getElementById('calledCount').textContent = gameState.calledNumbers.length;
+            
+            if (gameState.calledNumbers.length > 0) {
+                const lastNumber = gameState.calledNumbers[gameState.calledNumbers.length - 1];
+                document.getElementById('currentNumber').textContent = lastNumber;
+                
+                const lastFive = gameState.calledNumbers.slice(-5).reverse();
+                document.getElementById('lastNumbers').textContent = 
+                    lastFive.length > 1 ? `Last numbers: ${lastFive.join(', ')}` : '';
+            }
+        }
+
+        // Setup players
+        function setupPlayers() {
+            const count = parseInt(document.getElementById('playerCount').value);
+            const playerInputsDiv = document.getElementById('playerInputs');
+            playerInputsDiv.innerHTML = '';
+            
+            for (let i = 1; i <= count; i++) {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-input-card';
+                playerCard.innerHTML = `
+                    <h4>Player ${i}</h4>
+                    <input type="text" id="playerName${i}" placeholder="Name" required>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="tel" id="playerPhone${i}" placeholder="Phone Number" required style="flex: 1;">
+                        <button type="button" class="btn btn-secondary" style="width: auto; padding: 8px 12px; margin: 0;" onclick="selectContact(${i})">
+                            📱
+                        </button>
+                    </div>
+                `;
+                playerInputsDiv.appendChild(playerCard);
+            }
+            
+            hideAll();
+            document.getElementById('playerRegistration').classList.remove('hidden');
+        }
+
+        // Generate ticket
+        function generateTicket() {
+            const ticket = Array(3).fill(null).map(() => Array(9).fill(0));
+            
+            // Generate all 90 numbers and shuffle them
+            const allNumbers = [];
+            for (let i = 1; i <= 90; i++) {
+                allNumbers.push(i);
+            }
+            
+            // Shuffle array
+            for (let i = allNumbers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allNumbers[i], allNumbers[j]] = [allNumbers[j], allNumbers[i]];
+            }
+            
+            // Pick 15 numbers for the ticket
+            const selectedNumbers = allNumbers.slice(0, 15);
+            
+            // Sort numbers by their column
+            const columnNumbers = Array(9).fill(null).map(() => []);
+            selectedNumbers.forEach(num => {
+                const col = num === 90 ? 8 : Math.floor((num - 1) / 10);
+                columnNumbers[col].push(num);
+            });
+            
+            // Sort each column
+            columnNumbers.forEach(col => col.sort((a, b) => a - b));
+            
+            // Distribute numbers ensuring each row has exactly 5
+            const rowCounts = [0, 0, 0];
+            const usedPositions = new Set();
+            
+            // First, ensure each column with numbers gets at least one placement
+            columnNumbers.forEach((nums, col) => {
+                if (nums.length > 0) {
+                    // Find row with least numbers
+                    let minRow = 0;
+                    for (let r = 1; r < 3; r++) {
+                        if (rowCounts[r] < rowCounts[minRow]) minRow = r;
+                    }
+                    
+                    // Place first number
+                    if (rowCounts[minRow] < 5) {
+                        ticket[minRow][col] = nums[0];
+                        rowCounts[minRow]++;
+                        usedPositions.add(`${minRow}-${col}`);
+                    }
+                }
+            });
+            
+            // Place remaining numbers
+            columnNumbers.forEach((nums, col) => {
+                for (let i = 1; i < nums.length; i++) {
+                    // Find available row
+                    for (let row = 0; row < 3; row++) {
+                        if (rowCounts[row] < 5 && !usedPositions.has(`${row}-${col}`)) {
+                            ticket[row][col] = nums[i];
+                            rowCounts[row]++;
+                            usedPositions.add(`${row}-${col}`);
+                            break;
+                        }
+                    }
+                }
+            });
+            
+            // Fill remaining positions if needed
+            for (let row = 0; row < 3; row++) {
+                while (rowCounts[row] < 5) {
+                    // Find empty position
+                    for (let col = 0; col < 9; col++) {
+                        if (!usedPositions.has(`${row}-${col}`) && columnNumbers[col].length > 0) {
+                            // Find unused number from this column
+                            for (const num of columnNumbers[col]) {
+                                if (!ticket.flat().includes(num)) {
+                                    ticket[row][col] = num;
+                                    rowCounts[row]++;
+                                    usedPositions.add(`${row}-${col}`);
+                                    break;
+                                }
+                            }
+                            if (rowCounts[row] >= 5) break;
+                        }
+                    }
+                    
+                    // If still not enough, generate new number
+                    if (rowCounts[row] < 5) {
+                        for (let col = 0; col < 9; col++) {
+                            if (!usedPositions.has(`${row}-${col}`)) {
+                                const min = col * 10 + 1;
+                                const max = col === 8 ? 90 : (col + 1) * 10;
+                                let num;
+                                do {
+                                    num = Math.floor(Math.random() * (max - min + 1)) + min;
+                                } while (ticket.flat().includes(num));
+                                ticket[row][col] = num;
+                                rowCounts[row]++;
+                                usedPositions.add(`${row}-${col}`);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return ticket;
+        }
+
+        // Start game
+        function startGame() {
+            const count = parseInt(document.getElementById('playerCount').value);
+            
+            // Reset game state
+            gameState = {
+                gameTypes: [],
+                players: [],
+                calledNumbers: [],
+                winners: {},
+                isAutoPlay: false,
+                autoPlayInterval: null,
+                tickets: {},
+                prizes: {},
+                kittyAmount: parseFloat(document.getElementById('kittyAmount').value) || 0,
+                distributionMode: document.getElementById('distributionMode').value
+            };
+            
+            // Collect selected game types and prizes
+            allGameTypes.forEach(gameType => {
+                const checkbox = document.getElementById(gameType.id);
+                if (checkbox && checkbox.checked) {
+                    gameState.gameTypes.push(gameType.id);
+                    const prizeInput = document.getElementById(`prize_${gameType.id}`);
+                    gameState.prizes[gameType.id] = parseInt(prizeInput.value) || 0;
+                }
+            });
+            
+            if (gameState.gameTypes.length === 0) {
+                alert('Please select at least one game type!');
+                return;
+            }
+            
+            // Initialize winners
+            gameState.gameTypes.forEach(type => {
+                gameState.winners[type] = null;
+            });
+            
+            // Collect players and generate tickets
+            let hasValidPlayers = false;
+            for (let i = 1; i <= count; i++) {
+                const nameInput = document.getElementById(`playerName${i}`);
+                const phoneInput = document.getElementById(`playerPhone${i}`);
+                
+                if (nameInput && phoneInput) {
+                    const name = nameInput.value.trim();
+                    const phone = phoneInput.value.trim();
+                    
+                    if (name && phone) {
+                        hasValidPlayers = true;
+                        const ticket = generateTicket();
+                        gameState.players.push({ name, phone, ticket });
+                        gameState.tickets[phone] = { name, ticket, marked: [] };
+                    }
+                }
+            }
+            
+            if (!hasValidPlayers) {
+                alert('Please add at least one player with name and phone!');
+                return;
+            }
+            
+            // Save game state
+            saveGameState();
+            
+            // Send tickets via WhatsApp
+            sendTickets();
+            
+            // Show admin dashboard
+            hideAll();
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            
+            // Initialize board
+            initNumberBoard();
+            updateAdminDisplay();
+        }
+
+        // Send tickets via WhatsApp
+        function sendTickets() {
+            // Create a container to show all share links
+            const shareModal = document.createElement('div');
+            shareModal.className = 'modal';
+            shareModal.style.display = 'flex';
+            
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal-content';
+            modalContent.innerHTML = '<h2 style="margin-bottom: 20px;">Share Tickets</h2>';
+            
+            const shareList = document.createElement('div');
+            shareList.style.maxHeight = '400px';
+            shareList.style.overflowY = 'auto';
+            
+            gameState.players.forEach((player, index) => {
+                // Encode ticket data in URL
+                const ticketData = {
+                    name: player.name,
+                    phone: player.phone,
+                    ticket: player.ticket,
+                    games: gameState.gameTypes,
+                    prizes: gameState.prizes
+                };
+                
+                // Convert to base64
+                const encodedData = btoa(JSON.stringify(ticketData));
+                const ticketUrl = `https://chopra3sahil.github.io/tembola/?data=${encodedData}`;
+                
+                // Create share item
+                const shareItem = document.createElement('div');
+                shareItem.style.cssText = 'background: #f8f8f8; padding: 15px; margin-bottom: 10px; border-radius: 8px;';
+                
+                shareItem.innerHTML = `
+                    <strong>${player.name}</strong> - ${player.phone}<br>
+                    <button class="btn btn-success" style="margin-top: 10px;" onclick="shareOnWhatsApp('${player.name}', '${player.phone}', '${encodedData}')">
+                        Share on WhatsApp
+                    </button>
+                    <button class="btn btn-secondary" style="margin-top: 10px;" onclick="copyLink('${ticketUrl}')">
+                        Copy Link
+                    </button>
+                `;
+                
+                shareList.appendChild(shareItem);
+            });
+            
+            modalContent.appendChild(shareList);
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'btn btn-primary';
+            closeBtn.textContent = 'Done';
+            closeBtn.onclick = () => shareModal.remove();
+            closeBtn.style.marginTop = '20px';
+            
+            modalContent.appendChild(closeBtn);
+            shareModal.appendChild(modalContent);
+            document.body.appendChild(shareModal);
+        }
+        
+        // Select contact from phone (simulated)
+        function selectContact(playerIndex) {
+            // Note: Web browsers don't have direct access to phone contacts
+            // This would need a native app or special permissions
+            alert('Contact selection is not available in web browsers. Please type the phone number manually.\n\nFor a native app experience, this feature would open your phone contacts.');
+        }
+        
+        // Share individual ticket on WhatsApp
+        function shareOnWhatsApp(name, phone, encodedData) {
+            const ticketUrl = `https://chopra3sahil.github.io/tembola/?data=${encodedData}`;
+            const message = `Hello ${name}! 🎱\n\nYour Housie ticket is ready!\n\nClick here to view your ticket:\n${ticketUrl}\n\nGood luck! 🍀`;
+            
+            const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+        
+        // Copy link to clipboard
+        function copyLink(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Link copied to clipboard!');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Link copied to clipboard!');
+            });
+        }
+
+        // Initialize number board
+        function initNumberBoard() {
+            const board = document.getElementById('numberBoard');
+            if (!board) return;
+            
+            board.innerHTML = '';
+            
+            for (let i = 1; i <= 90; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'number-cell';
+                cell.textContent = i;
+                cell.id = `num-${i}`;
+                board.appendChild(cell);
+            }
+        }
+
+        // Call number
+        function callNumber() {
+            const availableNumbers = [];
+            for (let i = 1; i <= 90; i++) {
+                if (!gameState.calledNumbers.includes(i)) {
+                    availableNumbers.push(i);
+                }
+            }
+            
+            if (availableNumbers.length === 0) {
+                alert('All numbers have been called!');
+                return;
+            }
+            
+            const number = availableNumbers[Math.floor(Math.random() * availableNumbers.length)];
+            gameState.calledNumbers.push(number);
+            
+            // Update UI
+            const numCell = document.getElementById(`num-${number}`);
+            if (numCell) numCell.classList.add('called');
+            
+            document.getElementById('currentNumber').textContent = number;
+            document.getElementById('calledCount').textContent = gameState.calledNumbers.length;
+            
+            // Update last numbers
+            const lastFive = gameState.calledNumbers.slice(-5).reverse();
+            document.getElementById('lastNumbers').textContent = 
+                lastFive.length > 1 ? `Last numbers: ${lastFive.join(', ')}` : '';
+            
+            // Speak number
+            speakNumber(number);
+            
+            // Check for automatic winners (admin only)
+            checkAutomaticWinners();
+            
+            // Save state
+            saveGameState();
+        }
+        
+        // Check automatic winners (for admin view only)
+        function checkAutomaticWinners() {
+            let newWinners = [];
+            
+            gameState.players.forEach(player => {
+                const playerData = gameState.tickets[player.phone];
+                
+                gameState.gameTypes.forEach(type => {
+                    // Skip if already won
+                    if (gameState.winners[type]) return;
+                    
+                    // Check if this player has won this game type
+                    const allTicketNumbers = player.ticket.flat().filter(n => n > 0);
+                    const markedFromCalled = allTicketNumbers.filter(n => gameState.calledNumbers.includes(n));
+                    
+                    // Use markedFromCalled instead of playerData.marked for automatic detection
+                    if (checkWinCondition(player.ticket, markedFromCalled, type)) {
+                        // Check if this winner was already detected
+                        if (!gameState.detectedWinners) gameState.detectedWinners = {};
+                        if (!gameState.detectedWinners[type]) {
+                            gameState.detectedWinners[type] = player.name;
+                            newWinners.push({
+                                player: player.name,
+                                type: getGameTypeName(type)
+                            });
+                        }
+                    }
+                });
+            });
+            
+            // Show notification only for NEW winners
+            if (newWinners.length > 0) {
+                let message = 'Possible Winners Detected!\n\n';
+                newWinners.forEach(winner => {
+                    message += `${winner.player} - ${winner.type}\n`;
+                });
+                message += '\nPlayers must claim their wins!';
+                
+                // Create a temporary notification with backdrop
+                const backdrop = document.createElement('div');
+                backdrop.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: transparent;
+                    z-index: 9998;
+                `;
+                
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #4caf50;
+                    color: white;
+                    padding: 20px 30px;
+                    border-radius: 10px;
+                    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+                    z-index: 9999;
+                    text-align: center;
+                    white-space: pre-line;
+                    max-width: 90%;
+                    animation: slideDown 0.3s ease;
+                `;
+                notification.textContent = message;
+                
+                // Add CSS animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideDown {
+                        from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+                        to { transform: translateX(-50%) translateY(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                // Close on click anywhere
+                backdrop.onclick = () => {
+                    backdrop.remove();
+                    notification.remove();
+                };
+                
+                document.body.appendChild(backdrop);
+                document.body.appendChild(notification);
+                
+                // Auto close after 5 seconds
+                setTimeout(() => {
+                    backdrop.remove();
+                    notification.remove();
+                }, 5000);
+            }
+        }
+
+        // Speak number
+        function speakNumber(number) {
+            if ('speechSynthesis' in window) {
+                const voiceMode = document.querySelector('input[name="voiceMode"]:checked').value;
+                let textToSpeak = number.toString();
+                
+                if (voiceMode === 'words') {
+                    // Convert number to words (e.g., 42 becomes "four two")
+                    textToSpeak = number.toString().split('').map(digit => numberWords[digit]).join(' ');
+                } else if (voiceMode === 'full') {
+                    // Full style (e.g., 80 becomes "eight zero eighty")
+                    const digits = number.toString().split('');
+                    const digitWords = digits.map(digit => numberWords[digit]).join(' ');
+                    textToSpeak = `${digitWords} ${number}`;
+                }
+                
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                
+                // Get selected voice
+                const selectedVoiceName = document.getElementById('voiceSelect').value;
+                const voices = speechSynthesis.getVoices();
+                const selectedVoice = voices.find(voice => voice.name === selectedVoiceName);
+                
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
+                }
+                
+                // Set speech parameters for clarity
+                utterance.rate = 0.9; // Slightly slower for clarity
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Toggle auto play
+        function toggleAutoPlay() {
+            gameState.isAutoPlay = !gameState.isAutoPlay;
+            
+            if (gameState.isAutoPlay) {
+                const interval = parseInt(document.getElementById('autoInterval').value) * 1000;
+                gameState.autoPlayInterval = setInterval(callNumber, interval);
+                document.getElementById('autoPlayText').textContent = 'Stop Auto';
+            } else {
+                clearInterval(gameState.autoPlayInterval);
+                document.getElementById('autoPlayText').textContent = 'Auto Play';
+            }
+        }
+
+        // Join with phone
+        function joinWithPhone() {
+            const phone = document.getElementById('joinPhone').value.trim();
+            
+            // Get the saved game state
+            const savedGame = localStorage.getItem('housieGame');
+            if (!savedGame) {
+                alert('No active game found!');
+                return;
+            }
+            
+            const savedState = JSON.parse(savedGame);
+            
+            // Find the player's ticket
+            let playerData = null;
+            let playerTicket = null;
+            
+            // Search in saved tickets
+            for (const [key, value] of Object.entries(savedState.tickets || {})) {
+                const cleanKey = key.replace(/[\s\-\(\)]/g, '');
+                const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+                if (cleanKey === cleanPhone || key === phone) {
+                    playerData = value;
+                    break;
+                }
+            }
+            
+            // Also search in players array for ticket
+            if (!playerTicket && savedState.players) {
+                const player = savedState.players.find(p => {
+                    const cleanPlayerPhone = p.phone.replace(/[\s\-\(\)]/g, '');
+                    const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+                    return cleanPlayerPhone === cleanPhone || p.phone === phone;
+                });
+                if (player) {
+                    playerTicket = player.ticket;
+                    if (!playerData) {
+                        playerData = { name: player.name, ticket: player.ticket };
+                    }
+                }
+            }
+            
+            if (!playerData || !playerData.ticket) {
+                alert('No ticket found for this phone number! Please check the number and try again.');
+                return;
+            }
+            
+            // Show player view
+            hideAll();
+            document.getElementById('playerView').classList.remove('hidden');
+            document.getElementById('playerName').textContent = playerData.name;
+            
+            // Display the ticket
+            displayPlayerTicket(playerData.ticket, phone);
+        }
+
+        // Display player ticket
+        function displayPlayerTicket(ticket, phone) {
+            const ticketDiv = document.getElementById('playerTicket');
+            ticketDiv.innerHTML = '';
+            
+            // Add theme selector
+            const themeSelector = document.createElement('div');
+            themeSelector.className = 'theme-selector';
+            themeSelector.innerHTML = `
+                <button class="theme-btn active" onclick="changeTheme('default')">Default</button>
+                <button class="theme-btn" onclick="changeTheme('classic')">Classic</button>
+                <button class="theme-btn" onclick="changeTheme('neon')">Neon</button>
+                <button class="theme-btn" onclick="changeTheme('ocean')">Ocean</button>
+            `;
+            ticketDiv.appendChild(themeSelector);
+            
+            // Create ticket container
+            const ticketContainer = document.createElement('div');
+            ticketContainer.className = 'ticket';
+            ticketContainer.id = 'ticketContainer';
+            ticketContainer.innerHTML = '<div class="ticket-header"><h3>Your Ticket</h3></div>';
+            
+            // Add refresh warning
+            window.onbeforeunload = function() {
+                return "Your marked numbers will be lost if you refresh. Are you sure?";
+            };
+            
+            const grid = document.createElement('div');
+            grid.className = 'ticket-grid';
+            
+            // Get or initialize marked numbers for this session
+            if (!window.sessionMarked) {
+                window.sessionMarked = [];
+            }
+            
+            ticket.forEach((row, rowIndex) => {
+                row.forEach((num, colIndex) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'ticket-cell';
+                    if (num > 0) {
+                        cell.textContent = num;
+                        cell.onclick = () => toggleMarkSimple(num, cell);
+                        
+                        // Check if already marked in this session
+                        if (window.sessionMarked.includes(num)) {
+                            cell.classList.add('marked');
+                        }
+                    }
+                    grid.appendChild(cell);
+                });
+            });
+            
+            ticketContainer.appendChild(grid);
+            ticketDiv.appendChild(ticketContainer);
+            
+            // Get selected game types from saved state
+            const savedGame = localStorage.getItem('housieGame');
+            let selectedGameTypes = [];
+            let gamePrizes = {};
+            if (savedGame) {
+                const savedState = JSON.parse(savedGame);
+                selectedGameTypes = savedState.gameTypes || [];
+                gamePrizes = savedState.prizes || {};
+            }
+            
+            // Store for use in claims
+            window.selectedGames = selectedGameTypes;
+            window.gamePrizes = gamePrizes;
+            window.currentTicket = ticket;
+            window.currentPhone = phone;
+            
+            // Add progress section
+            const progressSection = document.createElement('div');
+            progressSection.id = 'progressSection';
+            progressSection.style.cssText = 'margin-top: 20px; padding: 15px; background: #f8f8f8; border-radius: 8px;';
+            ticketDiv.appendChild(progressSection);
+            
+            // Initial progress update
+            updateProgress();
+        }
+
+        // Display player ticket for direct URL access
+        function displayPlayerTicketDirect(ticket, phone) {
+            window.currentPhone = phone;
+            const ticketDiv = document.getElementById('playerTicket');
+            ticketDiv.innerHTML = '';
+            
+            // Add theme selector
+            const themeSelector = document.createElement('div');
+            themeSelector.className = 'theme-selector';
+            themeSelector.innerHTML = `
+                <button class="theme-btn active" onclick="changeTheme('default')">Default</button>
+                <button class="theme-btn" onclick="changeTheme('classic')">Classic</button>
+                <button class="theme-btn" onclick="changeTheme('neon')">Neon</button>
+                <button class="theme-btn" onclick="changeTheme('ocean')">Ocean</button>
+            `;
+            ticketDiv.appendChild(themeSelector);
+            
+            // Create ticket container
+            const ticketContainer = document.createElement('div');
+            ticketContainer.className = 'ticket';
+            ticketContainer.id = 'ticketContainer';
+            ticketContainer.innerHTML = '<div class="ticket-header"><h3>Your Ticket</h3></div>';
+            
+            // Add refresh warning
+            window.onbeforeunload = function() {
+                return "Your marked numbers will be lost if you refresh. Are you sure?";
+            };
+            
+            const grid = document.createElement('div');
+            grid.className = 'ticket-grid';
+            
+            // Load saved marks from localStorage
+            const savedMarks = localStorage.getItem(`ticket_marks_${phone}`);
+            if (savedMarks) {
+                window.sessionMarked = JSON.parse(savedMarks);
+            } else if (!window.sessionMarked) {
+                window.sessionMarked = [];
+            }
+            
+            window.currentTicket = ticket;
+            
+            ticket.forEach((row, rowIndex) => {
+                row.forEach((num, colIndex) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'ticket-cell';
+                    if (num > 0) {
+                        cell.textContent = num;
+                        cell.onclick = () => toggleMarkSimple(num, cell);
+                        
+                        // Check if already marked
+                        if (window.sessionMarked.includes(num)) {
+                            cell.classList.add('marked');
+                        }
+                    }
+                    grid.appendChild(cell);
+                });
+            });
+            
+            ticketContainer.appendChild(grid);
+            ticketDiv.appendChild(ticketContainer);
+            
+            // Add progress section
+            const progressSection = document.createElement('div');
+            progressSection.id = 'progressSection';
+            progressSection.style.cssText = 'margin-top: 20px; padding: 15px; background: #f8f8f8; border-radius: 8px;';
+            ticketDiv.appendChild(progressSection);
+            
+            // Initial progress update
+            updateProgress();
+        }
+        
+        // Change theme function
+        function changeTheme(theme) {
+            const ticketContainer = document.getElementById('ticketContainer');
+            const themeButtons = document.querySelectorAll('.theme-btn');
+            
+            // Update active button
+            themeButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase() === theme) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Remove all theme classes
+            ticketContainer.classList.remove('theme-classic', 'theme-neon', 'theme-ocean');
+            
+            // Add new theme class if not default
+            if (theme !== 'default') {
+                ticketContainer.classList.add(`theme-${theme}`);
+            }
+        }
+
+        // Simple toggle mark without any validation
+        function toggleMarkSimple(num, cell) {
+            if (!window.sessionMarked) {
+                window.sessionMarked = [];
+            }
+            
+            if (window.sessionMarked.includes(num)) {
+                // Unmark
+                window.sessionMarked = window.sessionMarked.filter(n => n !== num);
+                cell.classList.remove('marked');
+            } else {
+                // Mark
+                window.sessionMarked.push(num);
+                cell.classList.add('marked');
+                
+                // Vibrate on mark - try different patterns
+                if ('vibrate' in navigator) {
+                    try {
+                        navigator.vibrate(100); // 100ms vibration
+                    } catch (e) {
+                        console.log('Vibration not supported');
+                    }
+                }
+            }
+            
+            // Save to localStorage for this ticket
+            const phone = window.currentPhone || 'default';
+            localStorage.setItem(`ticket_marks_${phone}`, JSON.stringify(window.sessionMarked));
+            
+            // Update progress
+            updateProgress();
+        }
+
+        // Update progress display
+        function updateProgress() {
+            const progressSection = document.getElementById('progressSection');
+            if (!progressSection || !window.selectedGames || !window.currentTicket) return;
+            
+            progressSection.innerHTML = '<h4 style="margin-bottom: 15px;">Your Progress:</h4>';
+            
+            const marked = window.sessionMarked || [];
+            const ticket = window.currentTicket;
+            const allNumbers = ticket.flat().filter(n => n > 0);
+            
+            // Load player's claims from localStorage
+            const phone = window.currentPhone || 'default';
+            const playerClaims = JSON.parse(localStorage.getItem(`player_claims_${phone}`) || '{}');
+            
+            let totalWinnings = 0;
+            
+            window.selectedGames.forEach(type => {
+                const progressItem = document.createElement('div');
+                progressItem.className = 'progress-item';
+                progressItem.style.marginBottom = '20px';
+                
+                let required = 0;
+                let completed = 0;
+                
+                // Calculate progress for each game type
+                switch (type) {
+                    case 'firstFive':
+                        required = 5;
+                        completed = Math.min(marked.filter(n => allNumbers.includes(n)).length, 5);
+                        break;
+                        
+                    case 'earlyFive':
+                        required = 5;
+                        completed = Math.min(marked.length, 5);
+                        break;
+                        
+                    case 'topLine':
+                    case 'breakfast':
+                        const topLineNumbers = ticket[0].filter(n => n > 0);
+                        required = topLineNumbers.length;
+                        completed = topLineNumbers.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'middleLine':
+                    case 'lunch':
+                        const middleLineNumbers = ticket[1].filter(n => n > 0);
+                        required = middleLineNumbers.length;
+                        completed = middleLineNumbers.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'bottomLine':
+                    case 'dinner':
+                        const bottomLineNumbers = ticket[2].filter(n => n > 0);
+                        required = bottomLineNumbers.length;
+                        completed = bottomLineNumbers.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'corners':
+                        required = 4;
+                        const corners = [];
+                        for (let i = 0; i < 9; i++) {
+                            if (ticket[0][i] > 0) { corners.push(ticket[0][i]); break; }
+                        }
+                        for (let i = 8; i >= 0; i--) {
+                            if (ticket[0][i] > 0 && !corners.includes(ticket[0][i])) { 
+                                corners.push(ticket[0][i]); break; 
+                            }
+                        }
+                        for (let i = 0; i < 9; i++) {
+                            if (ticket[2][i] > 0 && !corners.includes(ticket[2][i])) { 
+                                corners.push(ticket[2][i]); break; 
+                            }
+                        }
+                        for (let i = 8; i >= 0; i--) {
+                            if (ticket[2][i] > 0 && !corners.includes(ticket[2][i])) { 
+                                corners.push(ticket[2][i]); break; 
+                            }
+                        }
+                        completed = corners.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'fullHouse':
+                        required = allNumbers.length;
+                        completed = allNumbers.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'house1':
+                        const firstTwoLines = [...ticket[0], ...ticket[1]].filter(n => n > 0);
+                        required = firstTwoLines.length;
+                        completed = firstTwoLines.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'house2':
+                        const lastTwoLines = [...ticket[1], ...ticket[2]].filter(n => n > 0);
+                        required = lastTwoLines.length;
+                        completed = lastTwoLines.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'firstTwoLines':
+                        const firstTwoLinesNums = [...ticket[0], ...ticket[1]].filter(n => n > 0);
+                        required = firstTwoLinesNums.length;
+                        completed = firstTwoLinesNums.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'lastTwoLines':
+                        const lastTwoLinesNums = [...ticket[1], ...ticket[2]].filter(n => n > 0);
+                        required = lastTwoLinesNums.length;
+                        completed = lastTwoLinesNums.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'centerColumn':
+                        const centerCol = [ticket[0][4], ticket[1][4], ticket[2][4]].filter(n => n > 0);
+                        required = centerCol.length;
+                        completed = centerCol.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'bullsEye':
+                        required = 1;
+                        const centerNum = ticket[1][4];
+                        completed = (centerNum > 0 && marked.includes(centerNum)) ? 1 : 0;
+                        break;
+                }
+                
+                const percentage = required > 0 ? (completed / required) * 100 : 0;
+                const prize = window.gamePrizes[type] || 0;
+                
+                // Determine color based on percentage
+                let colorClass = 'low';
+                if (percentage >= 80) colorClass = 'high';
+                else if (percentage >= 50) colorClass = 'medium';
+                
+                let claimButtons = '';
+                const playerClaim = playerClaims[type];
+                
+                if (playerClaim) {
+                    // Already claimed
+                    if (playerClaim.status === 'won') {
+                        claimButtons = `<div style="color: #4caf50; font-weight: bold; margin-top: 10px;">✓ You Won! ₹${playerClaim.amount}</div>`;
+                        totalWinnings += playerClaim.amount;
+                    } else {
+                        claimButtons = `<div style="color: #f44336; font-weight: bold; margin-top: 10px;">✗ Too Late!</div>`;
+                    }
+                } else if (percentage === 100) {
+                    // Ready to claim
+                    claimButtons = `
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button class="btn" style="background: #4caf50; color: white; flex: 1; padding: 10px;" 
+                                    onclick="claimWin('${type}', true)">I Won! 🎉</button>
+                            <button class="btn" style="background: #f44336; color: white; flex: 1; padding: 10px;" 
+                                    onclick="claimWin('${type}', false)">Too Late 😔</button>
+                        </div>
+                    `;
+                }
+                
+                progressItem.innerHTML = `
+                    <div class="progress-label">
+                        <span>${getGameTypeName(type)} (Prize: ₹${prize})</span>
+                        <span>${completed}/${required}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill ${colorClass}" style="width: ${percentage}%"></div>
+                    </div>
+                    ${claimButtons}
+                `;
+                
+                progressSection.appendChild(progressItem);
+            });
+            
+            // Show total winnings
+            if (totalWinnings > 0 || Object.keys(playerClaims).length > 0) {
+                const totalDiv = document.createElement('div');
+                totalDiv.style.cssText = 'margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 8px; text-align: center;';
+                totalDiv.innerHTML = `
+                    <h3 style="color: #2e7d32; margin: 0;">Total Winnings: ₹${totalWinnings}</h3>
+                `;
+                progressSection.appendChild(totalDiv);
+            }
+        }
+        
+        // New claim function
+        function claimWin(type, won) {
+            const phone = window.currentPhone || 'default';
+            const playerClaims = JSON.parse(localStorage.getItem(`player_claims_${phone}`) || '{}');
+            
+            // Disable both buttons immediately
+            const buttons = event.target.parentElement.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            });
+            
+            // Calculate prize amount
+            const basePrize = window.gamePrizes[type] || 0;
+            const amount = won ? basePrize : 0;
+            
+            playerClaims[type] = {
+                status: won ? 'won' : 'late',
+                amount: amount,
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem(`player_claims_${phone}`, JSON.stringify(playerClaims));
+            
+            // Update admin's winner record if won
+            if (won) {
+                const savedGame = localStorage.getItem('housieGame');
+                if (savedGame) {
+                    const gameState = JSON.parse(savedGame);
+                    if (!gameState.winners[type]) {
+                        // Find player name from phone
+                        const player = gameState.players.find(p => p.phone === window.currentPhone);
+                        const winnerName = player ? player.name : window.currentPhone;
+                        gameState.winners[type] = winnerName;
+                        localStorage.setItem('housieGame', JSON.stringify(gameState));
+                    }
+                }
+            }
+            
+            // Show feedback
+            if (won) {
+                alert(`Congratulations! You won ₹${amount} for ${getGameTypeName(type)}!`);
+            } else {
+                alert(`Sorry, you were too late for ${getGameTypeName(type)}.`);
+            }
+            
+            // Update display
+            updateProgress();
+        }
+
+        // Check win condition - Fixed house1 and house2
+        function checkWinCondition(ticket, marked, type) {
+            const allNumbers = ticket.flat().filter(n => n > 0);
+            
+            switch (type) {
+                case 'firstFive':
+                    return marked.filter(n => allNumbers.includes(n)).length >= 5;
+                
+                case 'earlyFive':
+                    return marked.length >= 5;
+                
+                case 'topLine':
+                case 'breakfast':
+                    return ticket[0].filter(n => n > 0).every(n => marked.includes(n));
+                
+                case 'middleLine':
+                case 'lunch':
+                    return ticket[1].filter(n => n > 0).every(n => marked.includes(n));
+                
+                case 'bottomLine':
+                case 'dinner':
+                    return ticket[2].filter(n => n > 0).every(n => marked.includes(n));
+                
+                case 'corners':
+                    const corners = [];
+                    // Find actual corners
+                    for (let i = 0; i < 9; i++) {
+                        if (ticket[0][i] > 0) { corners.push(ticket[0][i]); break; }
+                    }
+                    for (let i = 8; i >= 0; i--) {
+                        if (ticket[0][i] > 0 && !corners.includes(ticket[0][i])) { 
+                            corners.push(ticket[0][i]); break; 
+                        }
+                    }
+                    for (let i = 0; i < 9; i++) {
+                        if (ticket[2][i] > 0 && !corners.includes(ticket[2][i])) { 
+                            corners.push(ticket[2][i]); break; 
+                        }
+                    }
+                    for (let i = 8; i >= 0; i--) {
+                        if (ticket[2][i] > 0 && !corners.includes(ticket[2][i])) { 
+                            corners.push(ticket[2][i]); break; 
+                        }
+                    }
+                    return corners.length === 4 && corners.every(n => marked.includes(n));
+                
+                case 'fullHouse':
+                    return allNumbers.every(n => marked.includes(n));
+                
+                case 'house1':
+                    // House 1 is also full house (all numbers)
+                    return allNumbers.every(n => marked.includes(n));
+                
+                case 'house2':
+                    // House 2 is also full house (all numbers)
+                    return allNumbers.every(n => marked.includes(n));
+                    
+                case 'firstTwoLines':
+                    // All numbers in first two lines must be marked
+                    const firstTwoLines = [...ticket[0], ...ticket[1]].filter(n => n > 0);
+                    return firstTwoLines.every(n => marked.includes(n));
+                
+                case 'lastTwoLines':
+                    // All numbers in last two lines must be marked
+                    const lastTwoLines = [...ticket[1], ...ticket[2]].filter(n => n > 0);
+                    return lastTwoLines.every(n => marked.includes(n));
+                
+                case 'centerColumn':
+                    const centerCol = [ticket[0][4], ticket[1][4], ticket[2][4]].filter(n => n > 0);
+                    return centerCol.length > 0 && centerCol.every(n => marked.includes(n));
+                
+                case 'bullsEye':
+                    const centerNum = ticket[1][4];
+                    return centerNum > 0 && marked.includes(centerNum);
+                
+                default:
+                    return false;
+            }
+        }
+
+        // Get game type name
+        function getGameTypeName(type) {
+            const gameType = allGameTypes.find(gt => gt.id === type);
+            return gameType ? gameType.name : type;
+        }
+
+        // Show winners
+        function showWinners() {
+            const winnersList = document.getElementById('winnersList');
+            const summaryList = document.getElementById('winnersSummaryList');
+            const summaryDiv = document.getElementById('winnersSummary');
+            
+            winnersList.innerHTML = '';
+            summaryList.innerHTML = '';
+            
+            let hasWinners = false;
+            let totalPrizeGiven = 0;
+            const playerWinnings = {}; // Track each player's total winnings
+            
+            gameState.gameTypes.forEach(type => {
+                const winner = gameState.winners[type];
+                const detectedWinner = gameState.detectedWinners && gameState.detectedWinners[type];
+                const prize = gameState.prizes[type] || 0;
+                
+                winnersList.innerHTML += `
+                    <div class="winner-item">
+                        <span>${getGameTypeName(type)} (₹${prize})</span>
+                        <span>
+                            ${winner ? `<strong>Claimed:</strong> ${getWinnerName(winner)}` : 
+                              (detectedWinner ? `<em style="color: #ff9800;">Possible: ${detectedWinner}</em>` : 
+                               'Not claimed yet')}
+                        </span>
+                    </div>
+                `;
+                
+                // Add to player winnings summary
+                if (winner) {
+                    hasWinners = true;
+                    totalPrizeGiven += prize;
+                    const winnerName = getWinnerName(winner);
+                    
+                    if (!playerWinnings[winnerName]) {
+                        playerWinnings[winnerName] = 0;
+                    }
+                    
+                    playerWinnings[winnerName] += prize;
+                }
+            });
+            
+            // Display player winnings summary - Simple format
+            if (hasWinners) {
+                summaryDiv.style.display = 'block';
+                summaryList.innerHTML = ''; // Clear any existing content
+                
+                // Add title
+                const titleDiv = document.createElement('div');
+                titleDiv.style.cssText = 'margin-bottom: 15px; font-weight: bold; color: #333;';
+                titleDiv.textContent = 'Player Summary:';
+                summaryList.appendChild(titleDiv);
+                
+                // Add each player's winnings in simple format
+                Object.entries(playerWinnings).forEach(([playerName, totalAmount]) => {
+                    const summaryItem = document.createElement('div');
+                    summaryItem.className = 'winner-summary-item';
+                    summaryItem.style.cssText = 'padding: 8px 0; font-size: 16px;';
+                    summaryItem.innerHTML = `${playerName} - Won ₹${totalAmount}`;
+                    summaryList.appendChild(summaryItem);
+                });
+                
+                // Add total
+                const totalItem = document.createElement('div');
+                totalItem.className = 'winner-summary-item';
+                totalItem.style.cssText = 'font-weight: bold; margin-top: 15px; padding-top: 15px; border-top: 2px solid #4caf50; font-size: 18px;';
+                totalItem.innerHTML = `
+                    <span>Total Prize Given</span>
+                    <span>₹${totalPrizeGiven}</span>
+                `;
+                summaryList.appendChild(totalItem);
+            } else {
+                summaryDiv.style.display = 'none';
+            }
+            
+            document.getElementById('winnersModal').style.display = 'flex';
+        }
+        
+        // Get winner name from phone or stored data
+        function getWinnerName(winnerIdentifier) {
+            // If it's already a name (not a phone number), return as is
+            if (winnerIdentifier && !winnerIdentifier.match(/^\+?[\d\s\-\(\)]+$/)) {
+                return winnerIdentifier;
+            }
+            
+            // Check if it's a phone number
+            const player = gameState.players.find(p => p.phone === winnerIdentifier);
+            if (player) return player.name;
+            
+            // Check in tickets
+            const ticketData = gameState.tickets[winnerIdentifier];
+            if (ticketData) return ticketData.name;
+            
+            // Return as is if not found
+            return winnerIdentifier;
+        }
+
+        // Show players
+        function showPlayers() {
+            const playersList = document.getElementById('playersList');
+            playersList.innerHTML = '';
+            
+            gameState.players.forEach(player => {
+                playersList.innerHTML += `
+                    <div class="player-item">
+                        <strong>${player.name}</strong><br>
+                        <small>${player.phone}</small>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('playersModal').style.display = 'flex';
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // End game
+        function endGame() {
+            if (confirm('Are you sure you want to end this game?')) {
+                localStorage.removeItem('housieGame');
+                
+                if (gameState.autoPlayInterval) {
+                    clearInterval(gameState.autoPlayInterval);
+                }
+                
+                gameState = {
+                    gameTypes: [],
+                    players: [],
+                    calledNumbers: [],
+                    winners: {},
+                    isAutoPlay: false,
+                    autoPlayInterval: null,
+                    tickets: {}
+                };
+                
+                showLanding();
+            }
+        }
+
+        // Save game state
+        function saveGameState() {
+            localStorage.setItem('housieGame', JSON.stringify(gameState));
+        }
+
+        // Initialize on load
+        window.onload = init;
+    </script>
+</body>
+</html> 
+                
