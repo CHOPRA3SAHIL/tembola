@@ -1,0 +1,3268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Housie Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #f3f4f6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius: 0.75rem;
+            --radius-lg: 1rem;
+        }
+
+        /* Confetti Animation */
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #f0f;
+            animation: confetti-fall 3s ease-out forwards;
+        }
+
+        /* Number calling animation */
+        @keyframes number-pulse {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .number-calling {
+            animation: number-pulse 1s ease-out;
+        }
+
+        /* Winning pattern highlight */
+        @keyframes pattern-glow {
+            0%, 100% {
+                box-shadow: 0 0 5px #10b981, 0 0 10px #10b981, 0 0 15px #10b981;
+            }
+            50% {
+                box-shadow: 0 0 10px #10b981, 0 0 20px #10b981, 0 0 30px #10b981;
+            }
+        }
+
+        .pattern-winner {
+            animation: pattern-glow 1.5s ease-in-out infinite;
+            border-color: #10b981 !important;
+            background: #10b981 !important;
+            color: white !important;
+        }
+
+        /* Info icon styles */
+        .info-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .info-icon:hover {
+            transform: scale(1.1);
+            background: var(--primary);
+        }
+
+        /* Game info popup */
+        .game-info-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            max-width: 400px;
+            z-index: 1001;
+            border: 1px solid var(--border);
+        }
+
+        .game-info-popup h3 {
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .game-info-popup p {
+            margin: 0.5rem 0;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .game-info-popup .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: var(--secondary);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .game-info-popup .close-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .popup-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #fafafa;
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem 0 1rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 0.75rem 1.5rem;
+            margin: 0.5rem 0;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            text-decoration: none;
+            white-space: nowrap;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .input-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .input-group input, 
+        .input-group select {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .input-group input:focus, 
+        .input-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1);
+        }
+
+        .kitty-section {
+            background: linear-gradient(to bottom right, #f9fafb, #f3f4f6);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .kitty-section h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .kitty-total {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-align: center;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .game-type-card {
+            background: white;
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .game-type-card:hover {
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .game-type-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .game-type-header input[type="checkbox"] {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-right: 0.75rem;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .game-type-header label {
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            flex: 1;
+        }
+
+        .game-type-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            padding-left: 2rem;
+        }
+
+        .game-type-inputs input {
+            padding: 0.5rem;
+            font-size: 0.875rem;
+            text-align: center;
+        }
+
+        .game-type-inputs label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .game-type-card:has(input[type="checkbox"]:not(:checked)) .game-type-inputs {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .player-input-card {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .player-input-card:hover {
+            background: white;
+            border-color: var(--primary-light);
+        }
+
+        .player-input-card h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .player-input-card input {
+            margin-bottom: 0.5rem;
+        }
+
+        .ticket {
+            background: white;
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+        }
+
+        .ticket-header {
+            text-align: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .ticket-header h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .ticket-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .ticket-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ticket-cell:not(:empty):hover {
+            transform: scale(1.05);
+            border-color: var(--primary);
+            background: #f0f1ff;
+        }
+
+        .ticket-cell.marked {
+            background: var(--success) !important;
+            color: white !important;
+            border-color: var(--success) !important;
+        }
+
+        .ticket-cell.marked::after {
+            content: '✓';
+            position: absolute;
+            font-size: 1.5rem;
+            opacity: 0.2;
+        }
+
+        .number-board {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 0.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .number-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.75rem;
+            transition: all 0.2s ease;
+            background: white;
+            cursor: default;
+        }
+
+        .number-cell.called {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+            font-weight: 600;
+        }
+
+        .winner-item {
+            background: #f9fafb;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: var(--radius);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
+        }
+
+        .winner-badge {
+            background: var(--success);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            max-width: 480px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-content h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .player-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .player-item {
+            background: #f9fafb;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .game-status {
+            text-align: center;
+            padding: 1.5rem;
+            background: linear-gradient(to bottom right, #f0f1ff, #e8e9ff);
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            border: 1px solid #d4d6ff;
+        }
+
+        .current-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 1rem 0;
+            line-height: 1;
+        }
+
+        .claims-container {
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: var(--radius);
+            margin-top: 1.5rem;
+        }
+
+        .progress-item {
+            margin-bottom: 1rem;
+        }
+
+        .progress-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 0.5rem;
+            background: var(--border);
+            border-radius: 9999px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-fill.low {
+            background: var(--danger);
+        }
+
+        .progress-fill.medium {
+            background: var(--warning);
+        }
+
+        .progress-fill.high {
+            background: var(--success);
+        }
+
+        .voice-mode-group {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-top: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .voice-mode-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: background 0.2s ease;
+        }
+
+        .voice-mode-group label:hover {
+            background: #f3f4f6;
+        }
+
+        .voice-mode-group input[type="radio"] {
+            margin-right: 0.75rem;
+            accent-color: var(--primary);
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .winner-summary {
+            background: linear-gradient(to bottom right, #f0fdf4, #dcfce7);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            margin-top: 1.5rem;
+            border: 1px solid #bbf7d0;
+        }
+
+        .winner-summary h3 {
+            color: #059669;
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .winner-summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #d1fae5;
+            font-size: 0.9375rem;
+        }
+
+        .winner-summary-item:last-child {
+            border-bottom: none;
+            font-weight: 600;
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .theme-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 9999px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.8125rem;
+            font-weight: 500;
+        }
+
+        .theme-btn:hover {
+            border-color: var(--primary);
+            background: #f0f1ff;
+        }
+
+        .theme-btn.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Theme variations */
+        .ticket.theme-classic {
+            background: #fefefe;
+            border: 2px solid #1f2937;
+        }
+
+        .ticket.theme-classic .ticket-cell {
+            border-color: #374151;
+            background: white;
+            border-radius: 0.25rem;
+        }
+
+        .ticket.theme-classic .ticket-cell.marked {
+            background: #dc2626 !important;
+            color: white !important;
+            border-color: #dc2626 !important;
+        }
+
+        .ticket.theme-neon {
+            background: #0f172a;
+            border: 1px solid #334155;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
+        }
+
+        .ticket.theme-neon .ticket-header {
+            color: #a5b4fc;
+            border-bottom-color: #334155;
+        }
+
+        .ticket.theme-neon .ticket-cell {
+            border-color: #334155;
+            background: #1e293b;
+            color: #e0e7ff;
+            font-weight: 500;
+            border-radius: 0.25rem;
+        }
+
+        .ticket.theme-neon .ticket-cell.marked {
+            background: #8b5cf6 !important;
+            color: white !important;
+            border-color: #8b5cf6 !important;
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+        }
+
+        .ticket.theme-ocean {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 1px solid #60a5fa;
+        }
+
+        .ticket.theme-ocean .ticket-header {
+            color: #1e40af;
+            border-bottom-color: #60a5fa;
+        }
+
+        .ticket.theme-ocean .ticket-cell {
+            border-color: #93c5fd;
+            background: rgba(255, 255, 255, 0.9);
+            color: #1e40af;
+        }
+
+        .ticket.theme-ocean .ticket-cell.marked {
+            background: #3b82f6 !important;
+            color: white !important;
+            border-color: #3b82f6 !important;
+        }
+
+        .ticket.theme-vibrant {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d1b69 100%);
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+        }
+
+        .ticket.theme-vibrant::before {
+            content: '';
+            position: absolute;
+            top: -2px; right: -2px; bottom: -2px; left: -2px;
+            background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #ff006e);
+            background-size: 300% 300%;
+            border-radius: var(--radius);
+            z-index: -1;
+            animation: gradient-border 4s ease infinite;
+        }
+
+        @keyframes gradient-border {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .ticket.theme-vibrant .ticket-header {
+            color: #ffffff;
+            border-bottom-color: rgba(255, 255, 255, 0.2);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .ticket.theme-vibrant .ticket-cell {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .ticket.theme-vibrant .ticket-cell:not(:empty):hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .ticket.theme-vibrant .ticket-cell.marked {
+            background: linear-gradient(45deg, #ff006e, #8338ec) !important;
+            color: white !important;
+            border: 1px solid transparent !important;
+            box-shadow: 0 0 20px rgba(131, 56, 236, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.2) !important;
+            animation: neon-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes neon-pulse {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(131, 56, 236, 0.6), inset 0 0 20px rgba(255, 255, 255, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(131, 56, 236, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.3);
+            }
+        }
+
+        /* Group message styles */
+        .group-message-container {
+            max-height: 400px;
+            overflow-y: auto;
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            font-family: monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* Animations */
+        @keyframes slideDown {
+            from {
+                transform: translateX(-50%) translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 480px) {
+            .container {
+                padding: 0.75rem;
+            }
+
+            .card {
+                padding: 1.25rem;
+            }
+
+            .ticket-cell {
+                font-size: 0.75rem;
+            }
+            
+            .number-cell {
+                font-size: 0.625rem;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
+            }
+
+            .game-type-inputs {
+                grid-template-columns: 1fr;
+                padding-left: 1.5rem;
+            }
+
+            .current-number {
+                font-size: 2.5rem;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+            }
+
+            .voice-mode-group {
+                gap: 0.5rem;
+            }
+
+            .theme-selector {
+                flex-wrap: wrap;
+            }
+
+            .theme-btn {
+                font-size: 0.75rem;
+                padding: 0.375rem 0.75rem;
+            }
+        }
+
+        /* Smooth scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--secondary);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-secondary);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-primary);
+        }
+
+        /* Loading state */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* Focus visible */
+        *:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎱 Housie Game</h1>
+        </div>
+
+        <!-- Landing Page -->
+        <div id="landingPage" class="card">
+            <h2 style="text-align: center;">Welcome to Housie!</h2>
+            <button class="btn btn-primary" onclick="showAdminSetup()">Start New Game (Admin)</button>
+            <button class="btn btn-secondary" onclick="showJoinGame()">Join Game (Player)</button>
+            <button class="btn btn-secondary" onclick="resumeAdmin()">Resume Game (Admin)</button>
+        </div>
+
+        <!-- Admin Setup -->
+        <div id="adminSetup" class="card hidden">
+            <h2>Game Setup</h2>
+            
+            <div class="kitty-section">
+                <h3>Prize Pool Setup</h3>
+                <div class="input-group">
+                    <label>Total Kitty Amount (₹):</label>
+                    <input type="number" id="kittyAmount" min="0" value="1000" onchange="updatePrizeDistribution()">
+                </div>
+                <div class="input-group">
+                    <label>Distribution Mode:</label>
+                    <select id="distributionMode" onchange="toggleDistributionMode()">
+                        <option value="percentage">Percentage Based</option>
+                        <option value="manual">Manual Entry</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Select Game Types & Configure Prizes:</label>
+                <div id="gameTypesContainer">
+                    <!-- Game types will be added here by JavaScript -->
+                </div>
+                <div class="kitty-total" id="totalDistributed">Total Distributed: ₹0</div>
+            </div>
+
+            <div class="input-group">
+                <label>Number of Players:</label>
+                <input type="number" id="playerCount" min="2" max="50" value="4">
+            </div>
+
+            <div class="input-group">
+                <label>Glow Duration (seconds):</label>
+                <input type="number" id="glowDuration" min="1" max="30" value="5">
+            </div>
+
+            <div class="input-group">
+                <label>Enable Confetti Celebrations:</label>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem; padding-left: 1rem;">
+                    <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="confettiPlayer" checked style="margin-right: 0.5rem; width: 1.25rem; height: 1.25rem; accent-color: var(--primary);">
+                        Show confetti on player screens when they win
+                    </label>
+                    <label style="display: flex; align-items: center; font-weight: normal; cursor: pointer;">
+                        <input type="checkbox" id="confettiAdmin" checked style="margin-right: 0.5rem; width: 1.25rem; height: 1.25rem; accent-color: var(--primary);">
+                        Show confetti on admin screen for wins
+                    </label>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="setupPlayers()">Next: Add Players</button>
+            <button class="btn btn-secondary" onclick="showLanding()">Back</button>
+        </div>
+
+        <!-- Player Registration -->
+        <div id="playerRegistration" class="card hidden">
+            <h2>Add Players</h2>
+            <div id="playerInputs"></div>
+            <button class="btn btn-primary" onclick="startGame()">Generate Tickets & Start</button>
+            <button class="btn btn-secondary" onclick="showAdminSetup()">Back</button>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="adminDashboard" class="card hidden">
+            <h2 style="text-align: center;">Admin Dashboard</h2>
+            
+            <div class="game-status">
+                <div style="font-size: 0.875rem; color: var(--text-secondary);">Called Numbers: <span id="calledCount">0</span>/90</div>
+                <div class="current-number" id="currentNumber">--</div>
+                <div id="lastNumbers" style="font-size: 0.8125rem; color: var(--text-secondary);"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" onclick="callNumber()">Call Number</button>
+                <button class="btn btn-secondary" onclick="toggleAutoPlay()">
+                    <span id="autoPlayText">Auto Play</span>
+                </button>
+            </div>
+
+            <div class="input-group">
+                <label>Voice Settings:</label>
+                <select id="voiceSelect" onchange="updateVoiceSettings()">
+                    <!-- Voice options will be populated dynamically -->
+                </select>
+                <div class="voice-mode-group">
+                    <label>
+                        <input type="radio" name="voiceMode" value="number" checked>
+                        Number only (e.g., "42")
+                    </label>
+                    <label>
+                        <input type="radio" name="voiceMode" value="words">
+                        In words (e.g., "four two")
+                    </label>
+                    <label>
+                        <input type="radio" name="voiceMode" value="full">
+                        Full style (e.g., "eight zero eighty")
+                    </label>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Auto Play Interval (seconds):</label>
+                <input type="number" id="autoInterval" min="3" max="30" value="5">
+            </div>
+
+            <div class="number-board" id="numberBoard"></div>
+
+            <button class="btn btn-success" onclick="showWinners()">View Winners</button>
+            <button class="btn btn-secondary" onclick="showPlayers()">View Players</button>
+            <button class="btn btn-danger" onclick="endGame()">End Game</button>
+        </div>
+
+        <!-- Player View -->
+        <div id="playerView" class="hidden">
+            <div class="card">
+                <h2 style="text-align: center;" id="playerName"></h2>
+                <div id="playerTicket"></div>
+                <div id="winStatus" style="text-align: center; margin-top: 1.5rem;"></div>
+            </div>
+        </div>
+
+        <!-- Join Game -->
+        <div id="joinGame" class="card hidden">
+            <h2>Join Game</h2>
+            <div class="input-group">
+                <label>Enter Your Phone Number:</label>
+                <input type="tel" id="joinPhone" placeholder="Enter phone number">
+            </div>
+            <button class="btn btn-primary" onclick="joinWithPhone()">View My Ticket</button>
+            <button class="btn btn-secondary" onclick="showLanding()">Back</button>
+        </div>
+
+        <!-- Modals -->
+        <div id="winnersModal" class="modal">
+            <div class="modal-content">
+                <h2>Winners</h2>
+                <div id="winnersList"></div>
+                <div id="winnersSummary" class="winner-summary">
+                    <h3>Player-wise Summary</h3>
+                    <div id="winnersSummaryList"></div>
+                </div>
+                <button class="btn btn-secondary" onclick="closeModal('winnersModal')">Close</button>
+            </div>
+        </div>
+
+        <div id="playersModal" class="modal">
+            <div class="modal-content">
+                <h2>Players</h2>
+                <div id="playersList" class="player-list"></div>
+                <button class="btn btn-secondary" onclick="closeModal('playersModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let gameState = {
+            gameTypes: [],
+            players: [],
+            calledNumbers: [],
+            winners: {},
+            isAutoPlay: false,
+            autoPlayInterval: null,
+            tickets: {},
+            prizes: {},
+            kittyAmount: 1000,
+            distributionMode: 'percentage',
+            glowDuration: 5,
+            confettiPlayer: true,
+            confettiAdmin: true
+        };
+
+        // Pattern highlight timeout storage
+        let patternTimeouts = {};
+
+        // Number to words mapping
+        const numberWords = {
+            0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four',
+            5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine'
+        };
+
+        // All available game types with default percentages
+        const allGameTypes = [
+            { id: 'firstFive', name: 'First Five', description: 'First 5 numbers on ticket', defaultPercentage: 5 },
+            { id: 'lucky7', name: 'Lucky 7', description: 'First 7 numbers marked', defaultPercentage: 7 },
+            { id: 'topLine', name: 'Top Line', description: 'Complete first row', defaultPercentage: 10 },
+            { id: 'middleLine', name: 'Middle Line', description: 'Complete second row', defaultPercentage: 10 },
+            { id: 'bottomLine', name: 'Bottom Line', description: 'Complete third row', defaultPercentage: 10 },
+            { id: 'corners', name: 'Four Corners', description: 'All 4 corner numbers', defaultPercentage: 8 },
+            { id: 'railwayTrack', name: 'Railway Track', description: 'Top and bottom lines complete', defaultPercentage: 8 },
+            { id: 'pyramid', name: 'Pyramid', description: 'Center pyramid pattern (1-3-5)', defaultPercentage: 5 },
+            { id: 'breakfast', name: 'Breakfast', description: 'First line (same as top line)', defaultPercentage: 5 },
+            { id: 'lunch', name: 'Lunch', description: 'Second line (same as middle line)', defaultPercentage: 5 },
+            { id: 'dinner', name: 'Dinner', description: 'Third line (same as bottom line)', defaultPercentage: 5 },
+            { id: 'fullHouse', name: 'Full House', description: 'All numbers on ticket', defaultPercentage: 20 },
+            { id: 'house1', name: 'House 1', description: 'All numbers on ticket (alternative full house)', defaultPercentage: 1 },
+            { id: 'house2', name: 'House 2', description: 'All numbers on ticket (alternative full house)', defaultPercentage: 1 },
+            { id: 'firstTwoLines', name: 'First Two Lines', description: 'Complete first and second rows', defaultPercentage: 0 },
+            { id: 'lastTwoLines', name: 'Last Two Lines', description: 'Complete second and third rows', defaultPercentage: 0 },
+            { id: 'centerColumn', name: 'Center Column', description: 'All numbers in 5th column', defaultPercentage: 0 },
+            { id: 'bullsEye', name: "Bull's Eye", description: 'Center number of ticket', defaultPercentage: 0 }
+        ];
+
+        // Game descriptions in English and Hindi only
+        const gameDescriptions = {
+            firstFive: {
+                en: 'Mark any 5 numbers on your ticket to win this game.',
+                hi: 'इस गेम को जीतने के लिए अपने टिकट पर कोई भी 5 नंबर मार्क करें।'
+            },
+            lucky7: {
+                en: 'Mark any 7 numbers on your ticket to win this game.',
+                hi: 'इस गेम को जीतने के लिए अपने टिकट पर कोई भी 7 नंबर मार्क करें।'
+            },
+            topLine: {
+                en: 'Complete all numbers in the first row to win.',
+                hi: 'जीतने के लिए पहली पंक्ति के सभी नंबर पूरे करें।'
+            },
+            middleLine: {
+                en: 'Complete all numbers in the middle row to win.',
+                hi: 'जीतने के लिए बीच की पंक्ति के सभी नंबर पूरे करें।'
+            },
+            bottomLine: {
+                en: 'Complete all numbers in the last row to win.',
+                hi: 'जीतने के लिए आखिरी पंक्ति के सभी नंबर पूरे करें।'
+            },
+            corners: {
+                en: 'Mark all 4 corner numbers of your ticket to win.',
+                hi: 'जीतने के लिए अपने टिकट के सभी 4 कोने के नंबर मार्क करें।'
+            },
+            railwayTrack: {
+                en: 'Complete both top and bottom rows (like railway tracks) to win.',
+                hi: 'जीतने के लिए ऊपरी और निचली दोनों पंक्तियाँ (रेलवे ट्रैक की तरह) पूरी करें।'
+            },
+            pyramid: {
+                en: 'Mark the pyramid pattern: 1 number in top row (center), 3 in middle row (center 3), 5 in bottom row (center 5).',
+                hi: 'पिरामिड पैटर्न मार्क करें: ऊपरी पंक्ति में 1 नंबर (बीच में), मध्य पंक्ति में 3, निचली पंक्ति में 5।'
+            },
+            breakfast: {
+                en: 'Same as Top Line - complete the first row.',
+                hi: 'टॉप लाइन जैसा ही - पहली पंक्ति पूरी करें।'
+            },
+            lunch: {
+                en: 'Same as Middle Line - complete the middle row.',
+                hi: 'मिडिल लाइन जैसा ही - बीच की पंक्ति पूरी करें।'
+            },
+            dinner: {
+                en: 'Same as Bottom Line - complete the last row.',
+                hi: 'बॉटम लाइन जैसा ही - आखिरी पंक्ति पूरी करें।'
+            },
+            fullHouse: {
+                en: 'Mark all 15 numbers on your ticket to win the biggest prize!',
+                hi: 'सबसे बड़ा इनाम जीतने के लिए अपने टिकट के सभी 15 नंबर मार्क करें!'
+            },
+            house1: {
+                en: 'Alternative Full House - mark all 15 numbers on your ticket.',
+                hi: 'वैकल्पिक फुल हाउस - अपने टिकट के सभी 15 नंबर मार्क करें।'
+            },
+            house2: {
+                en: 'Another Full House option - mark all 15 numbers on your ticket.',
+                hi: 'एक और फुल हाउस विकल्प - अपने टिकट के सभी 15 नंबर मार्क करें।'
+            },
+            firstTwoLines: {
+                en: 'Complete both first and second rows to win.',
+                hi: 'जीतने के लिए पहली और दूसरी दोनों पंक्तियाँ पूरी करें।'
+            },
+            lastTwoLines: {
+                en: 'Complete both second and third rows to win.',
+                hi: 'जीतने के लिए दूसरी और तीसरी दोनों पंक्तियाँ पूरी करें।'
+            },
+            centerColumn: {
+                en: 'Mark all numbers in the 5th column (middle column) to win.',
+                hi: 'जीतने के लिए 5वें कॉलम (बीच का कॉलम) के सभी नंबर मार्क करें।'
+            },
+            bullsEye: {
+                en: 'Mark the center number of your ticket (middle row, middle column).',
+                hi: 'अपने टिकट के बीच का नंबर मार्क करें (बीच की पंक्ति, बीच का कॉलम)।'
+            }
+        };
+
+        // Initialize
+        function init() {
+            // Clear any stored player claims when starting fresh
+            clearAllPlayerClaims();
+            
+            // Populate game types
+            const container = document.getElementById('gameTypesContainer');
+            if (container) {
+                container.innerHTML = '';
+                
+                allGameTypes.forEach(gameType => {
+                    const div = document.createElement('div');
+                    div.className = 'game-type-card';
+                    div.innerHTML = `
+                        <div class="game-type-header">
+                            <input type="checkbox" id="${gameType.id}" ${gameType.defaultPercentage > 0 ? 'checked' : ''} onchange="updatePrizeDistribution()">
+                            <label for="${gameType.id}">${gameType.name}</label>
+                            <span class="info-icon" onclick="showGameInfo('${gameType.id}')">i</span>
+                        </div>
+                        <div class="game-type-inputs">
+                            <div>
+                                <label style="font-size: 12px; color: #666;">Percentage</label>
+                                <input type="number" id="percentage_${gameType.id}" value="${gameType.defaultPercentage}" min="0" max="100" onchange="updatePrizeDistribution()">
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: #666;">Prize ₹</label>
+                                <input type="number" id="prize_${gameType.id}" value="0" min="0" readonly>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+                
+                // Initial distribution calculation
+                updatePrizeDistribution();
+            }
+
+            // Load voices
+            loadVoices();
+
+            // Check URL parameters for ticket data
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedData = urlParams.get('data');
+            
+            if (encodedData) {
+                try {
+                    // Decode ticket data
+                    const ticketData = JSON.parse(atob(encodedData));
+                    
+                    // Show player view directly
+                    hideAll();
+                    document.getElementById('playerView').classList.remove('hidden');
+                    document.getElementById('playerName').textContent = ticketData.name;
+                    
+                    // Store selected games and prizes in session
+                    window.selectedGames = ticketData.games || [];
+                    window.gamePrizes = ticketData.prizes || {};
+                    
+                    // Display ticket
+                    displayPlayerTicketDirect(ticketData.ticket, ticketData.phone);
+                    
+                    return;
+                } catch (e) {
+                    console.error('Error decoding ticket data:', e);
+                }
+            }
+
+            // Check if there's a game in progress (for admin)
+            const savedGame = localStorage.getItem('housieGame');
+            if (savedGame) {
+                gameState = JSON.parse(savedGame);
+            }
+            
+            // Initialize number board
+            initNumberBoard();
+        }
+
+        // Clear all player claims
+        function clearAllPlayerClaims() {
+            // Clear any existing player claims from localStorage
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+                if (key.startsWith('player_claims_')) {
+                    localStorage.removeItem(key);
+                }
+            });
+        }
+
+        // Show game info popup
+        function showGameInfo(gameId) {
+            const desc = gameDescriptions[gameId];
+            if (!desc) return;
+            
+            const backdrop = document.createElement('div');
+            backdrop.className = 'popup-backdrop';
+            
+            const popup = document.createElement('div');
+            popup.className = 'game-info-popup';
+            popup.innerHTML = `
+                <button class="close-btn" onclick="closeGameInfo()">×</button>
+                <h3>${getGameTypeName(gameId)}</h3>
+                <p><strong>English:</strong><br>${desc.en}</p>
+                <p><strong>हिंदी:</strong><br>${desc.hi}</p>
+            `;
+            
+            backdrop.onclick = closeGameInfo;
+            
+            document.body.appendChild(backdrop);
+            document.body.appendChild(popup);
+        }
+        
+        // Close game info popup
+        function closeGameInfo() {
+            const backdrop = document.querySelector('.popup-backdrop');
+            const popup = document.querySelector('.game-info-popup');
+            if (backdrop) backdrop.remove();
+            if (popup) popup.remove();
+        }
+        
+        // Show confetti animation
+        function showConfetti() {
+            const container = document.createElement('div');
+            container.className = 'confetti-container';
+            
+            const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
+            
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                confetti.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                container.appendChild(confetti);
+            }
+            
+            document.body.appendChild(container);
+            
+            setTimeout(() => container.remove(), 6000);
+        }
+
+        // Load available voices
+        function loadVoices() {
+            if ('speechSynthesis' in window) {
+                const voiceSelect = document.getElementById('voiceSelect');
+                
+                function populateVoices() {
+                    const voices = speechSynthesis.getVoices();
+                    voiceSelect.innerHTML = '';
+                    
+                    // Group voices by language - only English and Hindi
+                    const englishVoices = voices.filter(voice => voice.lang.startsWith('en'));
+                    const hindiVoices = voices.filter(voice => voice.lang.startsWith('hi'));
+                    
+                    // Try to find good quality voices
+                    const femaleVoices = englishVoices.filter(v => 
+                        v.name.toLowerCase().includes('female') || 
+                        v.name.toLowerCase().includes('woman') ||
+                        v.name.toLowerCase().includes('samantha') ||
+                        v.name.toLowerCase().includes('victoria') ||
+                        v.name.toLowerCase().includes('karen') ||
+                        v.name.toLowerCase().includes('moira')
+                    );
+                    
+                    const maleVoices = englishVoices.filter(v => 
+                        v.name.toLowerCase().includes('male') || 
+                        v.name.toLowerCase().includes('man') ||
+                        v.name.toLowerCase().includes('daniel') ||
+                        v.name.toLowerCase().includes('alex') ||
+                        v.name.toLowerCase().includes('rishi')
+                    );
+                    
+                    // Add voices to select
+                    if (femaleVoices.length > 0) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = 'Female Voices';
+                        femaleVoices.forEach((voice, i) => {
+                            const option = document.createElement('option');
+                            option.value = voice.name;
+                            option.textContent = voice.name;
+                            if (i === 0) option.selected = true;
+                            optgroup.appendChild(option);
+                        });
+                        voiceSelect.appendChild(optgroup);
+                    }
+                    
+                    if (maleVoices.length > 0) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = 'Male Voices';
+                        maleVoices.forEach(voice => {
+                            const option = document.createElement('option');
+                            option.value = voice.name;
+                            option.textContent = voice.name;
+                            optgroup.appendChild(option);
+                        });
+                        voiceSelect.appendChild(optgroup);
+                    }
+                    
+                    // Add Hindi voices if available
+                    if (hindiVoices.length > 0) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = 'Hindi Voices';
+                        hindiVoices.forEach(voice => {
+                            const option = document.createElement('option');
+                            option.value = voice.name;
+                            option.textContent = voice.name;
+                            optgroup.appendChild(option);
+                        });
+                        voiceSelect.appendChild(optgroup);
+                    }
+                    
+                    // Add remaining English voices
+                    const otherVoices = englishVoices.filter(v => 
+                        !femaleVoices.includes(v) && !maleVoices.includes(v)
+                    );
+                    
+                    if (otherVoices.length > 0) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = 'Other Voices';
+                        otherVoices.forEach(voice => {
+                            const option = document.createElement('option');
+                            option.value = voice.name;
+                            option.textContent = voice.name;
+                            optgroup.appendChild(option);
+                        });
+                        voiceSelect.appendChild(optgroup);
+                    }
+                }
+                
+                // Populate voices when they're loaded
+                if (speechSynthesis.getVoices().length > 0) {
+                    populateVoices();
+                } else {
+                    speechSynthesis.onvoiceschanged = populateVoices;
+                }
+            }
+        }
+
+        // Update voice settings
+        function updateVoiceSettings() {
+            // This will be used when speaking numbers
+        }
+
+        // Toggle distribution mode
+        function toggleDistributionMode() {
+            const mode = document.getElementById('distributionMode').value;
+            
+            allGameTypes.forEach(gameType => {
+                const percentageInput = document.getElementById(`percentage_${gameType.id}`);
+                const prizeInput = document.getElementById(`prize_${gameType.id}`);
+                
+                if (mode === 'percentage') {
+                    percentageInput.readOnly = false;
+                    prizeInput.readOnly = true;
+                } else {
+                    percentageInput.readOnly = true;
+                    prizeInput.readOnly = false;
+                }
+            });
+            
+            if (mode === 'percentage') {
+                updatePrizeDistribution();
+            }
+        }
+
+        // Update prize distribution
+        function updatePrizeDistribution() {
+            const kittyAmount = parseFloat(document.getElementById('kittyAmount').value) || 0;
+            const mode = document.getElementById('distributionMode').value;
+            
+            let totalDistributed = 0;
+            
+            if (mode === 'percentage') {
+                let totalPercentage = 0;
+                
+                // Calculate total percentage of selected games
+                allGameTypes.forEach(gameType => {
+                    const checkbox = document.getElementById(gameType.id);
+                    if (checkbox && checkbox.checked) {
+                        const percentage = parseFloat(document.getElementById(`percentage_${gameType.id}`).value) || 0;
+                        totalPercentage += percentage;
+                    }
+                });
+                
+                // Update prize amounts
+                allGameTypes.forEach(gameType => {
+                    const checkbox = document.getElementById(gameType.id);
+                    const prizeInput = document.getElementById(`prize_${gameType.id}`);
+                    
+                    if (checkbox && checkbox.checked) {
+                        const percentage = parseFloat(document.getElementById(`percentage_${gameType.id}`).value) || 0;
+                        const prize = Math.round((kittyAmount * percentage) / 100);
+                        prizeInput.value = prize;
+                        totalDistributed += prize;
+                    } else {
+                        prizeInput.value = 0;
+                    }
+                });
+            } else {
+                // Manual mode - calculate total from prize inputs
+                allGameTypes.forEach(gameType => {
+                    const checkbox = document.getElementById(gameType.id);
+                    if (checkbox && checkbox.checked) {
+                        const prize = parseFloat(document.getElementById(`prize_${gameType.id}`).value) || 0;
+                        totalDistributed += prize;
+                    }
+                });
+            }
+            
+            // Update total distributed display
+            const totalElement = document.getElementById('totalDistributed');
+            totalElement.textContent = `Total Distributed: ₹${totalDistributed}`;
+            
+            if (totalDistributed > kittyAmount) {
+                totalElement.style.color = '#ef4444';
+            } else {
+                totalElement.style.color = '#10b981';
+            }
+        }
+
+        // Navigation functions
+        function showLanding() {
+            hideAll();
+            document.getElementById('landingPage').classList.remove('hidden');
+        }
+
+        function showAdminSetup() {
+            hideAll();
+            document.getElementById('adminSetup').classList.remove('hidden');
+        }
+
+        function showJoinGame() {
+            hideAll();
+            document.getElementById('joinGame').classList.remove('hidden');
+        }
+
+        function hideAll() {
+            document.querySelectorAll('#landingPage, #adminSetup, #playerRegistration, #adminDashboard, #playerView, #joinGame').forEach(el => {
+                el.classList.add('hidden');
+            });
+        }
+
+        // Resume admin game
+        function resumeAdmin() {
+            const savedGame = localStorage.getItem('housieGame');
+            if (!savedGame) {
+                alert('No game in progress!');
+                return;
+            }
+            
+            gameState = JSON.parse(savedGame);
+            hideAll();
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            
+            // Restore board state
+            initNumberBoard();
+            updateAdminDisplay();
+        }
+
+        // Update admin display
+        function updateAdminDisplay() {
+            // Update called numbers on board
+            gameState.calledNumbers.forEach(num => {
+                const cell = document.getElementById(`num-${num}`);
+                if (cell) cell.classList.add('called');
+            });
+            
+            // Update counts and current number
+            document.getElementById('calledCount').textContent = gameState.calledNumbers.length;
+            
+            if (gameState.calledNumbers.length > 0) {
+                const lastNumber = gameState.calledNumbers[gameState.calledNumbers.length - 1];
+                document.getElementById('currentNumber').textContent = lastNumber;
+                
+                const lastFive = gameState.calledNumbers.slice(-5).reverse();
+                document.getElementById('lastNumbers').textContent = 
+                    lastFive.length > 1 ? `Last numbers: ${lastFive.join(', ')}` : '';
+            }
+        }
+
+        // Setup players
+        function setupPlayers() {
+            const count = parseInt(document.getElementById('playerCount').value);
+            const playerInputsDiv = document.getElementById('playerInputs');
+            playerInputsDiv.innerHTML = '';
+            
+            for (let i = 1; i <= count; i++) {
+                const playerCard = document.createElement('div');
+                playerCard.className = 'player-input-card';
+                playerCard.innerHTML = `
+                    <h4>Player ${i}</h4>
+                    <input type="text" id="playerName${i}" placeholder="Name" required>
+                    <input type="tel" id="playerPhone${i}" placeholder="Phone Number" required>
+                `;
+                playerInputsDiv.appendChild(playerCard);
+            }
+            
+            hideAll();
+            document.getElementById('playerRegistration').classList.remove('hidden');
+        }
+
+        // Generate ticket
+        function generateTicket() {
+            const ticket = Array(3).fill(null).map(() => Array(9).fill(0));
+            
+            // Generate all 90 numbers and shuffle them
+            const allNumbers = [];
+            for (let i = 1; i <= 90; i++) {
+                allNumbers.push(i);
+            }
+            
+            // Shuffle array
+            for (let i = allNumbers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allNumbers[i], allNumbers[j]] = [allNumbers[j], allNumbers[i]];
+            }
+            
+            // Pick 15 numbers for the ticket
+            const selectedNumbers = allNumbers.slice(0, 15);
+            
+            // Sort numbers by their column
+            const columnNumbers = Array(9).fill(null).map(() => []);
+            selectedNumbers.forEach(num => {
+                const col = num === 90 ? 8 : Math.floor((num - 1) / 10);
+                columnNumbers[col].push(num);
+            });
+            
+            // Sort each column
+            columnNumbers.forEach(col => col.sort((a, b) => a - b));
+            
+            // Distribute numbers ensuring each row has exactly 5
+            const rowCounts = [0, 0, 0];
+            const usedPositions = new Set();
+            
+            // First, ensure each column with numbers gets at least one placement
+            columnNumbers.forEach((nums, col) => {
+                if (nums.length > 0) {
+                    // Find row with least numbers
+                    let minRow = 0;
+                    for (let r = 1; r < 3; r++) {
+                        if (rowCounts[r] < rowCounts[minRow]) minRow = r;
+                    }
+                    
+                    // Place first number
+                    if (rowCounts[minRow] < 5) {
+                        ticket[minRow][col] = nums[0];
+                        rowCounts[minRow]++;
+                        usedPositions.add(`${minRow}-${col}`);
+                    }
+                }
+            });
+            
+            // Place remaining numbers
+            columnNumbers.forEach((nums, col) => {
+                for (let i = 1; i < nums.length; i++) {
+                    // Find available row
+                    for (let row = 0; row < 3; row++) {
+                        if (rowCounts[row] < 5 && !usedPositions.has(`${row}-${col}`)) {
+                            ticket[row][col] = nums[i];
+                            rowCounts[row]++;
+                            usedPositions.add(`${row}-${col}`);
+                            break;
+                        }
+                    }
+                }
+            });
+            
+            // Fill remaining positions if needed
+            for (let row = 0; row < 3; row++) {
+                while (rowCounts[row] < 5) {
+                    // Find empty position
+                    for (let col = 0; col < 9; col++) {
+                        if (!usedPositions.has(`${row}-${col}`) && columnNumbers[col].length > 0) {
+                            // Find unused number from this column
+                            for (const num of columnNumbers[col]) {
+                                if (!ticket.flat().includes(num)) {
+                                    ticket[row][col] = num;
+                                    rowCounts[row]++;
+                                    usedPositions.add(`${row}-${col}`);
+                                    break;
+                                }
+                            }
+                            if (rowCounts[row] >= 5) break;
+                        }
+                    }
+                    
+                    // If still not enough, generate new number
+                    if (rowCounts[row] < 5) {
+                        for (let col = 0; col < 9; col++) {
+                            if (!usedPositions.has(`${row}-${col}`)) {
+                                const min = col * 10 + 1;
+                                const max = col === 8 ? 90 : (col + 1) * 10;
+                                let num;
+                                do {
+                                    num = Math.floor(Math.random() * (max - min + 1)) + min;
+                                } while (ticket.flat().includes(num));
+                                ticket[row][col] = num;
+                                rowCounts[row]++;
+                                usedPositions.add(`${row}-${col}`);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return ticket;
+        }
+
+        // Start game
+        function startGame() {
+            const count = parseInt(document.getElementById('playerCount').value);
+            
+            // Reset game state
+            gameState = {
+                gameTypes: [],
+                players: [],
+                calledNumbers: [],
+                winners: {},
+                isAutoPlay: false,
+                autoPlayInterval: null,
+                tickets: {},
+                prizes: {},
+                kittyAmount: parseFloat(document.getElementById('kittyAmount').value) || 0,
+                distributionMode: document.getElementById('distributionMode').value,
+                glowDuration: parseInt(document.getElementById('glowDuration').value) || 5,
+                confettiPlayer: document.getElementById('confettiPlayer').checked,
+                confettiAdmin: document.getElementById('confettiAdmin').checked
+            };
+            
+            // Collect selected game types and prizes
+            allGameTypes.forEach(gameType => {
+                const checkbox = document.getElementById(gameType.id);
+                if (checkbox && checkbox.checked) {
+                    gameState.gameTypes.push(gameType.id);
+                    const prizeInput = document.getElementById(`prize_${gameType.id}`);
+                    gameState.prizes[gameType.id] = parseInt(prizeInput.value) || 0;
+                }
+            });
+            
+            if (gameState.gameTypes.length === 0) {
+                alert('Please select at least one game type!');
+                return;
+            }
+            
+            // Initialize winners
+            gameState.gameTypes.forEach(type => {
+                gameState.winners[type] = null;
+            });
+            
+            // Collect players and generate tickets
+            let hasValidPlayers = false;
+            for (let i = 1; i <= count; i++) {
+                const nameInput = document.getElementById(`playerName${i}`);
+                const phoneInput = document.getElementById(`playerPhone${i}`);
+                
+                if (nameInput && phoneInput) {
+                    const name = nameInput.value.trim();
+                    const phone = phoneInput.value.trim();
+                    
+                    if (name && phone) {
+                        hasValidPlayers = true;
+                        const ticket = generateTicket();
+                        gameState.players.push({ name, phone, ticket });
+                        gameState.tickets[phone] = { name, ticket, marked: [] };
+                    }
+                }
+            }
+            
+            if (!hasValidPlayers) {
+                alert('Please add at least one player with name and phone!');
+                return;
+            }
+            
+            // Save game state
+            saveGameState();
+            
+            // Send tickets via WhatsApp
+            sendTickets();
+            
+            // Show admin dashboard
+            hideAll();
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            
+            // Initialize board
+            initNumberBoard();
+            updateAdminDisplay();
+        }
+
+        // Send tickets via WhatsApp
+        function sendTickets() {
+            // Create a container to show all share links
+            const shareModal = document.createElement('div');
+            shareModal.className = 'modal';
+            shareModal.style.display = 'flex';
+            
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal-content';
+            modalContent.innerHTML = '<h2>Share Tickets</h2>';
+            
+            const shareList = document.createElement('div');
+            shareList.style.maxHeight = '400px';
+            shareList.style.overflowY = 'auto';
+            
+            gameState.players.forEach((player, index) => {
+                // Encode ticket data in URL
+                const ticketData = {
+                    name: player.name,
+                    phone: player.phone,
+                    ticket: player.ticket,
+                    games: gameState.gameTypes,
+                    prizes: gameState.prizes
+                };
+                
+                // Convert to base64
+                const encodedData = btoa(JSON.stringify(ticketData));
+                const ticketUrl = `https://chopra3sahil.github.io/tembola/?data=${encodedData}`;
+                
+                // Create share item
+                const shareItem = document.createElement('div');
+                shareItem.style.cssText = 'background: #f9fafb; padding: 1rem; margin-bottom: 0.5rem; border-radius: 0.75rem; border: 1px solid #e5e7eb;';
+                
+                // Create content
+                const content = document.createElement('div');
+                content.innerHTML = `<strong>${player.name}</strong> - ${player.phone}<br>`;
+                shareItem.appendChild(content);
+                
+                // Share button
+                const shareBtn = document.createElement('button');
+                shareBtn.className = 'btn btn-success';
+                shareBtn.style.marginTop = '0.75rem';
+                shareBtn.textContent = 'Share on WhatsApp';
+                shareBtn.onclick = function() {
+                    shareOnWhatsApp(player.name, player.phone, encodedData);
+                };
+                shareItem.appendChild(shareBtn);
+                
+                // Copy button
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'btn btn-secondary';
+                copyBtn.style.marginTop = '0.75rem';
+                copyBtn.style.marginLeft = '0.5rem';
+                copyBtn.textContent = 'Copy Link';
+                copyBtn.onclick = function() {
+                    copyLink(ticketUrl);
+                };
+                shareItem.appendChild(copyBtn);
+                
+                shareList.appendChild(shareItem);
+            });
+            
+            modalContent.appendChild(shareList);
+            
+            // Add group message button
+            const groupBtn = document.createElement('button');
+            groupBtn.className = 'btn btn-warning';
+            groupBtn.textContent = 'Generate Group Message';
+            groupBtn.onclick = generateGroupMessage;
+            groupBtn.style.marginTop = '1rem';
+            modalContent.appendChild(groupBtn);
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'btn btn-primary';
+            closeBtn.textContent = 'Done';
+            closeBtn.onclick = () => shareModal.remove();
+            closeBtn.style.marginTop = '0.5rem';
+            
+            modalContent.appendChild(closeBtn);
+            shareModal.appendChild(modalContent);
+            document.body.appendChild(shareModal);
+        }
+        
+        // Generate group message
+        function generateGroupMessage() {
+            let message = `🎱 *HOUSIE GAME TICKETS* 🎱\n\n`;
+            message += `Welcome to our Housie Game!\n\n`;
+            message += `*Prize Pool: ₹${gameState.kittyAmount}*\n\n`;
+            message += `📋 *Player Tickets:*\n`;
+            message += `━━━━━━━━━━━━━━━━\n\n`;
+            
+            gameState.players.forEach((player, index) => {
+                const ticketData = {
+                    name: player.name,
+                    phone: player.phone,
+                    ticket: player.ticket,
+                    games: gameState.gameTypes,
+                    prizes: gameState.prizes
+                };
+                
+                const encodedData = btoa(JSON.stringify(ticketData));
+                const ticketUrl = `https://chopra3sahil.github.io/tembola/?data=${encodedData}`;
+                
+                message += `${index + 1}. *${player.name}*\n`;
+                message += `📱 ${player.phone}\n`;
+                message += `🎟️ ${ticketUrl}\n\n`;
+            });
+            
+            message += `━━━━━━━━━━━━━━━━\n`;
+            message += `💰 *Game Prizes:*\n`;
+            
+            gameState.gameTypes.forEach(type => {
+                const prize = gameState.prizes[type] || 0;
+                message += `• ${getGameTypeName(type)}: ₹${prize}\n`;
+            });
+            
+            message += `\n✨ Good luck to all players! ✨`;
+            
+            // Create modal to show group message
+            const msgModal = document.createElement('div');
+            msgModal.className = 'modal';
+            msgModal.style.display = 'flex';
+            msgModal.style.zIndex = '1002';
+            
+            const msgContent = document.createElement('div');
+            msgContent.className = 'modal-content';
+            msgContent.innerHTML = '<h2>Group Message</h2>';
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'group-message-container';
+            msgDiv.textContent = message;
+            msgContent.appendChild(msgDiv);
+            
+            const btnContainer = document.createElement('div');
+            btnContainer.style.display = 'flex';
+            btnContainer.style.gap = '0.5rem';
+            btnContainer.style.marginTop = '1rem';
+            
+            const copyMsgBtn = document.createElement('button');
+            copyMsgBtn.className = 'btn btn-success';
+            copyMsgBtn.textContent = 'Copy Message';
+            copyMsgBtn.onclick = () => {
+                navigator.clipboard.writeText(message).then(() => {
+                    alert('Message copied to clipboard!');
+                });
+            };
+            btnContainer.appendChild(copyMsgBtn);
+            
+            const closeMsgBtn = document.createElement('button');
+            closeMsgBtn.className = 'btn btn-secondary';
+            closeMsgBtn.textContent = 'Close';
+            closeMsgBtn.onclick = () => msgModal.remove();
+            btnContainer.appendChild(closeMsgBtn);
+            
+            msgContent.appendChild(btnContainer);
+            msgModal.appendChild(msgContent);
+            document.body.appendChild(msgModal);
+        }
+        
+        // Share individual ticket on WhatsApp
+        function shareOnWhatsApp(name, phone, encodedData) {
+            const ticketUrl = `https://chopra3sahil.github.io/tembola/?data=${encodedData}`;
+            const message = `Hello ${name}! 🎱\n\nYour Housie ticket is ready!\n\nClick here to view your ticket:\n${ticketUrl}\n\nGood luck! 🍀`;
+            
+            const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+        
+        // Copy link to clipboard
+        function copyLink(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Link copied to clipboard!');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Link copied to clipboard!');
+            });
+        }
+
+        // Initialize number board
+        function initNumberBoard() {
+            const board = document.getElementById('numberBoard');
+            if (!board) return;
+            
+            board.innerHTML = '';
+            
+            for (let i = 1; i <= 90; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'number-cell';
+                cell.textContent = i;
+                cell.id = `num-${i}`;
+                board.appendChild(cell);
+            }
+        }
+
+        // Call number
+        function callNumber() {
+            const availableNumbers = [];
+            for (let i = 1; i <= 90; i++) {
+                if (!gameState.calledNumbers.includes(i)) {
+                    availableNumbers.push(i);
+                }
+            }
+            
+            if (availableNumbers.length === 0) {
+                alert('All numbers have been called!');
+                return;
+            }
+            
+            const number = availableNumbers[Math.floor(Math.random() * availableNumbers.length)];
+            gameState.calledNumbers.push(number);
+            
+            // Update UI
+            const numCell = document.getElementById(`num-${number}`);
+            if (numCell) numCell.classList.add('called');
+            
+            // Add animation to current number display
+            const currentNumberEl = document.getElementById('currentNumber');
+            currentNumberEl.textContent = number;
+            currentNumberEl.classList.add('number-calling');
+            setTimeout(() => currentNumberEl.classList.remove('number-calling'), 1000);
+            
+            document.getElementById('calledCount').textContent = gameState.calledNumbers.length;
+            
+            // Update last numbers
+            const lastFive = gameState.calledNumbers.slice(-5).reverse();
+            document.getElementById('lastNumbers').textContent = 
+                lastFive.length > 1 ? `Last numbers: ${lastFive.join(', ')}` : '';
+            
+            // Speak number
+            speakNumber(number);
+            
+            // Check for automatic winners (admin only)
+            checkAutomaticWinners();
+            
+            // Save state
+            saveGameState();
+        }
+        
+        // Check automatic winners (for admin view only)
+        function checkAutomaticWinners() {
+            let newWinners = [];
+            
+            gameState.players.forEach(player => {
+                const playerData = gameState.tickets[player.phone];
+                
+                gameState.gameTypes.forEach(type => {
+                    // Skip if already won
+                    if (gameState.winners[type]) return;
+                    
+                    // Check if this player has won this game type
+                    const allTicketNumbers = player.ticket.flat().filter(n => n > 0);
+                    const markedFromCalled = allTicketNumbers.filter(n => gameState.calledNumbers.includes(n));
+                    
+                    // Use markedFromCalled instead of playerData.marked for automatic detection
+                    if (checkWinCondition(player.ticket, markedFromCalled, type)) {
+                        // Set as winner automatically when pattern is complete
+                        if (!gameState.winners[type]) {
+                            gameState.winners[type] = player.name;
+                            newWinners.push({
+                                player: player.name,
+                                type: getGameTypeName(type)
+                            });
+                            
+                            // Show confetti for wins if enabled for admin
+                            if (gameState.confettiAdmin) {
+                                showConfetti();
+                            }
+                        }
+                    }
+                });
+            });
+            
+            // Show notification only for NEW winners
+            if (newWinners.length > 0) {
+                let message = 'Confirmed Winners\n\n';
+                newWinners.forEach(winner => {
+                    message += `${winner.player} - ${winner.type}\n`;
+                });
+                message += '\nPlayers must claim their wins!';
+                
+                // Create a temporary notification with backdrop
+                const backdrop = document.createElement('div');
+                backdrop.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: transparent;
+                    z-index: 9998;
+                `;
+                
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: #10b981;
+                    color: white;
+                    padding: 1.5rem 2rem;
+                    border-radius: 1rem;
+                    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+                    z-index: 9999;
+                    text-align: center;
+                    white-space: pre-line;
+                    max-width: 90%;
+                    animation: slideDown 0.3s ease;
+                `;
+                notification.textContent = message;
+                
+                // Add CSS animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideDown {
+                        from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
+                        to { transform: translateX(-50%) translateY(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                // Close on click anywhere
+                backdrop.onclick = () => {
+                    backdrop.remove();
+                    notification.remove();
+                };
+                
+                document.body.appendChild(backdrop);
+                document.body.appendChild(notification);
+                
+                // Auto close after 5 seconds
+                setTimeout(() => {
+                    backdrop.remove();
+                    notification.remove();
+                }, 5000);
+            }
+        }
+
+        // Speak number
+        function speakNumber(number) {
+            if ('speechSynthesis' in window) {
+                const voiceMode = document.querySelector('input[name="voiceMode"]:checked').value;
+                let textToSpeak = number.toString();
+                
+                if (voiceMode === 'words') {
+                    // Convert number to words (e.g., 42 becomes "four two")
+                    textToSpeak = number.toString().split('').map(digit => numberWords[digit]).join(' ');
+                } else if (voiceMode === 'full') {
+                    // Full style - fixed for single digit numbers
+                    const digits = number.toString().split('');
+                    if (digits.length === 1) {
+                        // For single digit, just say the number
+                        textToSpeak = number.toString();
+                    } else {
+                        // For multi-digit, say digits followed by the number
+                        const digitWords = digits.map(digit => numberWords[digit]).join(' ');
+                        textToSpeak = `${digitWords} ${number}`;
+                    }
+                }
+                
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                
+                // Get selected voice
+                const selectedVoiceName = document.getElementById('voiceSelect').value;
+                const voices = speechSynthesis.getVoices();
+                const selectedVoice = voices.find(voice => voice.name === selectedVoiceName);
+                
+                if (selectedVoice) {
+                    utterance.voice = selectedVoice;
+                }
+                
+                // Set speech parameters for clarity
+                utterance.rate = 0.9; // Slightly slower for clarity
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        // Toggle auto play
+        function toggleAutoPlay() {
+            gameState.isAutoPlay = !gameState.isAutoPlay;
+            
+            if (gameState.isAutoPlay) {
+                const interval = parseInt(document.getElementById('autoInterval').value) * 1000;
+                gameState.autoPlayInterval = setInterval(callNumber, interval);
+                document.getElementById('autoPlayText').textContent = 'Stop Auto';
+            } else {
+                clearInterval(gameState.autoPlayInterval);
+                document.getElementById('autoPlayText').textContent = 'Auto Play';
+            }
+        }
+
+        // Join with phone
+        function joinWithPhone() {
+            const phone = document.getElementById('joinPhone').value.trim();
+            
+            // Get the saved game state
+            const savedGame = localStorage.getItem('housieGame');
+            if (!savedGame) {
+                alert('No active game found!');
+                return;
+            }
+            
+            const savedState = JSON.parse(savedGame);
+            
+            // Find the player's ticket
+            let playerData = null;
+            let playerTicket = null;
+            
+            // Search in saved tickets
+            for (const [key, value] of Object.entries(savedState.tickets || {})) {
+                const cleanKey = key.replace(/[\s\-\(\)]/g, '');
+                const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+                if (cleanKey === cleanPhone || key === phone) {
+                    playerData = value;
+                    break;
+                }
+            }
+            
+            // Also search in players array for ticket
+            if (!playerTicket && savedState.players) {
+                const player = savedState.players.find(p => {
+                    const cleanPlayerPhone = p.phone.replace(/[\s\-\(\)]/g, '');
+                    const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+                    return cleanPlayerPhone === cleanPhone || p.phone === phone;
+                });
+                if (player) {
+                    playerTicket = player.ticket;
+                    if (!playerData) {
+                        playerData = { name: player.name, ticket: player.ticket };
+                    }
+                }
+            }
+            
+            if (!playerData || !playerData.ticket) {
+                alert('No ticket found for this phone number! Please check the number and try again.');
+                return;
+            }
+            
+            // Show player view
+            hideAll();
+            document.getElementById('playerView').classList.remove('hidden');
+            document.getElementById('playerName').textContent = playerData.name;
+            
+            // Display the ticket
+            displayPlayerTicket(playerData.ticket, phone);
+        }
+
+        // Display player ticket
+        function displayPlayerTicket(ticket, phone) {
+            const ticketDiv = document.getElementById('playerTicket');
+            ticketDiv.innerHTML = '';
+            
+            // Add theme selector
+            const themeSelector = document.createElement('div');
+            themeSelector.className = 'theme-selector';
+            themeSelector.innerHTML = `
+                <button class="theme-btn active" onclick="changeTheme('default')">Default</button>
+                <button class="theme-btn" onclick="changeTheme('classic')">Classic</button>
+                <button class="theme-btn" onclick="changeTheme('neon')">Neon</button>
+                <button class="theme-btn" onclick="changeTheme('ocean')">Ocean</button>
+                <button class="theme-btn" onclick="changeTheme('vibrant')">Vibrant</button>
+            `;
+            ticketDiv.appendChild(themeSelector);
+            
+            // Create ticket container
+            const ticketContainer = document.createElement('div');
+            ticketContainer.className = 'ticket';
+            ticketContainer.id = 'ticketContainer';
+            ticketContainer.innerHTML = '<div class="ticket-header"><h3>Your Ticket</h3></div>';
+            
+            // Add refresh warning
+            window.onbeforeunload = function() {
+                return "Your marked numbers will be lost if you refresh. Are you sure?";
+            };
+            
+            const grid = document.createElement('div');
+            grid.className = 'ticket-grid';
+            
+            // Get or initialize marked numbers for this session
+            if (!window.sessionMarked) {
+                window.sessionMarked = [];
+            }
+            
+            ticket.forEach((row, rowIndex) => {
+                row.forEach((num, colIndex) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'ticket-cell';
+                    if (num > 0) {
+                        cell.textContent = num;
+                        cell.onclick = () => toggleMarkSimple(num, cell);
+                        
+                        // Check if already marked in this session
+                        if (window.sessionMarked.includes(num)) {
+                            cell.classList.add('marked');
+                        }
+                    }
+                    grid.appendChild(cell);
+                });
+            });
+            
+            ticketContainer.appendChild(grid);
+            ticketDiv.appendChild(ticketContainer);
+            
+            // Get selected game types from saved state
+            const savedGame = localStorage.getItem('housieGame');
+            let selectedGameTypes = [];
+            let gamePrizes = {};
+            if (savedGame) {
+                const savedState = JSON.parse(savedGame);
+                selectedGameTypes = savedState.gameTypes || [];
+                gamePrizes = savedState.prizes || {};
+            }
+            
+            // Store for use in claims
+            window.selectedGames = selectedGameTypes;
+            window.gamePrizes = gamePrizes;
+            window.currentTicket = ticket;
+            window.currentPhone = phone;
+            
+            // Add progress section
+            const progressSection = document.createElement('div');
+            progressSection.id = 'progressSection';
+            progressSection.style.cssText = 'margin-top: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.75rem;';
+            ticketDiv.appendChild(progressSection);
+            
+            // Initial progress update
+            updateProgress();
+        }
+
+        // Display player ticket for direct URL access
+        function displayPlayerTicketDirect(ticket, phone) {
+            window.currentPhone = phone;
+            const ticketDiv = document.getElementById('playerTicket');
+            ticketDiv.innerHTML = '';
+            
+            // Clear any previous session data when loading new ticket
+            window.sessionMarked = [];
+            const sessionKey = `ticket_session_${phone}_${Date.now()}`;
+            window.currentSessionKey = sessionKey;
+            
+            // Add theme selector
+            const themeSelector = document.createElement('div');
+            themeSelector.className = 'theme-selector';
+            themeSelector.innerHTML = `
+                <button class="theme-btn active" onclick="changeTheme('default')">Default</button>
+                <button class="theme-btn" onclick="changeTheme('classic')">Classic</button>
+                <button class="theme-btn" onclick="changeTheme('neon')">Neon</button>
+                <button class="theme-btn" onclick="changeTheme('ocean')">Ocean</button>
+            `;
+            ticketDiv.appendChild(themeSelector);
+            
+            // Create ticket container
+            const ticketContainer = document.createElement('div');
+            ticketContainer.className = 'ticket';
+            ticketContainer.id = 'ticketContainer';
+            ticketContainer.innerHTML = '<div class="ticket-header"><h3>Your Ticket</h3></div>';
+            
+            // Add refresh warning
+            window.onbeforeunload = function() {
+                return "Your marked numbers will be lost if you refresh. Are you sure?";
+            };
+            
+            const grid = document.createElement('div');
+            grid.className = 'ticket-grid';
+            
+            window.currentTicket = ticket;
+            
+            ticket.forEach((row, rowIndex) => {
+                row.forEach((num, colIndex) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'ticket-cell';
+                    if (num > 0) {
+                        cell.textContent = num;
+                        cell.onclick = () => toggleMarkSimple(num, cell);
+                        
+                        // Check if already marked
+                        if (window.sessionMarked.includes(num)) {
+                            cell.classList.add('marked');
+                        }
+                    }
+                    grid.appendChild(cell);
+                });
+            });
+            
+            ticketContainer.appendChild(grid);
+            ticketDiv.appendChild(ticketContainer);
+            
+            // Add progress section
+            const progressSection = document.createElement('div');
+            progressSection.id = 'progressSection';
+            progressSection.style.cssText = 'margin-top: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 0.75rem;';
+            ticketDiv.appendChild(progressSection);
+            
+            // Initial progress update
+            updateProgress();
+        }
+        
+        // Change theme function
+        function changeTheme(theme) {
+            const ticketContainer = document.getElementById('ticketContainer');
+            const themeButtons = document.querySelectorAll('.theme-btn');
+            
+            // Update active button
+            themeButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase() === theme) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Remove all theme classes
+            ticketContainer.classList.remove('theme-classic', 'theme-neon', 'theme-ocean', 'theme-vibrant');
+            
+            // Add new theme class if not default
+            if (theme !== 'default') {
+                ticketContainer.classList.add(`theme-${theme}`);
+            }
+        }
+
+        // Simple toggle mark without any validation
+        function toggleMarkSimple(num, cell) {
+            if (!window.sessionMarked) {
+                window.sessionMarked = [];
+            }
+            
+            if (window.sessionMarked.includes(num)) {
+                // Unmark
+                window.sessionMarked = window.sessionMarked.filter(n => n !== num);
+                cell.classList.remove('marked');
+            } else {
+                // Mark
+                window.sessionMarked.push(num);
+                cell.classList.add('marked');
+                
+                // Vibrate on mark - try different patterns
+                if ('vibrate' in navigator) {
+                    try {
+                        navigator.vibrate(50); // 50ms vibration
+                    } catch (e) {
+                        console.log('Vibration not supported');
+                    }
+                }
+            }
+            
+            // Update progress
+            updateProgress();
+        }
+
+        // Update progress display
+        function updateProgress() {
+            const progressSection = document.getElementById('progressSection');
+            if (!progressSection || !window.selectedGames || !window.currentTicket) return;
+            
+            progressSection.innerHTML = '<h4 style="margin-bottom: 1rem; font-size: 1rem; font-weight: 600;">Your Progress:</h4>';
+            
+            const marked = window.sessionMarked || [];
+            const ticket = window.currentTicket;
+            const allNumbers = ticket.flat().filter(n => n > 0);
+            
+            // Use session-specific claims key
+            const claimsKey = `player_claims_${window.currentSessionKey || window.currentPhone}`;
+            const playerClaims = JSON.parse(sessionStorage.getItem(claimsKey) || '{}');
+            
+            let totalWinnings = 0;
+            
+            window.selectedGames.forEach(type => {
+                const progressItem = document.createElement('div');
+                progressItem.className = 'progress-item';
+                progressItem.style.marginBottom = '1.5rem';
+                
+                let required = 0;
+                let completed = 0;
+                
+                // Calculate progress for each game type
+                switch (type) {
+                    case 'firstFive':
+                        required = 5;
+                        completed = Math.min(marked.filter(n => allNumbers.includes(n)).length, 5);
+                        break;
+                        
+                    case 'lucky7':
+                        required = 7;
+                        completed = Math.min(marked.filter(n => allNumbers.includes(n)).length, 7);
+                        break;
+                        
+                    case 'topLine':
+                    case 'breakfast':
+                        const topLineNumbers = ticket[0].filter(n => n > 0);
+                        required = topLineNumbers.length;
+                        completed = topLineNumbers.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'middleLine':
+                    case 'lunch':
+                        const middleLineNumbers = ticket[1].filter(n => n > 0);
+                        required = middleLineNumbers.length;
+                        completed = middleLineNumbers.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'bottomLine':
+                    case 'dinner':
+                        const bottomLineNumbers = ticket[2].filter(n => n > 0);
+                        required = bottomLineNumbers.length;
+                        completed = bottomLineNumbers.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'corners':
+                        required = 4;
+                        const corners = [];
+                        for (let i = 0; i < 9; i++) {
+                            if (ticket[0][i] > 0) { corners.push(ticket[0][i]); break; }
+                        }
+                        for (let i = 8; i >= 0; i--) {
+                            if (ticket[0][i] > 0 && !corners.includes(ticket[0][i])) { 
+                                corners.push(ticket[0][i]); break; 
+                            }
+                        }
+                        for (let i = 0; i < 9; i++) {
+                            if (ticket[2][i] > 0 && !corners.includes(ticket[2][i])) { 
+                                corners.push(ticket[2][i]); break; 
+                            }
+                        }
+                        for (let i = 8; i >= 0; i--) {
+                            if (ticket[2][i] > 0 && !corners.includes(ticket[2][i])) { 
+                                corners.push(ticket[2][i]); break; 
+                            }
+                        }
+                        completed = corners.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'pyramid':
+                        const pyramidNumbers = [];
+                        // Top row - center position (column 4)
+                        if (ticket[0][4] > 0) pyramidNumbers.push(ticket[0][4]);
+                        // Middle row - positions 3, 4, 5
+                        for (let i = 3; i <= 5; i++) {
+                            if (ticket[1][i] > 0) pyramidNumbers.push(ticket[1][i]);
+                        }
+                        // Bottom row - positions 2, 3, 4, 5, 6
+                        for (let i = 2; i <= 6; i++) {
+                            if (ticket[2][i] > 0) pyramidNumbers.push(ticket[2][i]);
+                        }
+                        required = pyramidNumbers.length;
+                        completed = pyramidNumbers.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'railwayTrack':
+                        const topLineTrack = ticket[0].filter(n => n > 0);
+                        const bottomLineTrack = ticket[2].filter(n => n > 0);
+                        const trackNumbers = [...topLineTrack, ...bottomLineTrack];
+                        required = trackNumbers.length;
+                        completed = trackNumbers.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'fullHouse':
+                        required = allNumbers.length;
+                        completed = allNumbers.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'house1':
+                        // House 1 is also full house
+                        required = allNumbers.length;
+                        completed = allNumbers.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'house2':
+                        // House 2 is also full house
+                        required = allNumbers.length;
+                        completed = allNumbers.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'firstTwoLines':
+                        const firstTwoLinesNums = [...ticket[0], ...ticket[1]].filter(n => n > 0);
+                        required = firstTwoLinesNums.length;
+                        completed = firstTwoLinesNums.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'lastTwoLines':
+                        const lastTwoLinesNums = [...ticket[1], ...ticket[2]].filter(n => n > 0);
+                        required = lastTwoLinesNums.length;
+                        completed = lastTwoLinesNums.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'centerColumn':
+                        const centerCol = [ticket[0][4], ticket[1][4], ticket[2][4]].filter(n => n > 0);
+                        required = centerCol.length;
+                        completed = centerCol.filter(n => marked.includes(n)).length;
+                        break;
+                        
+                    case 'bullsEye':
+                        required = 1;
+                        const centerNum = ticket[1][4];
+                        completed = (centerNum > 0 && marked.includes(centerNum)) ? 1 : 0;
+                        break;
+                }
+                
+                const percentage = required > 0 ? (completed / required) * 100 : 0;
+                const prize = window.gamePrizes[type] || 0;
+                
+                // Determine color based on percentage
+                let colorClass = 'low';
+                if (percentage >= 80) colorClass = 'high';
+                else if (percentage >= 50) colorClass = 'medium';
+                
+                let claimButtons = '';
+                const playerClaim = playerClaims[type];
+                
+                if (playerClaim) {
+                    // Already claimed
+                    if (playerClaim.status === 'won') {
+                        claimButtons = `<div style="color: #10b981; font-weight: 600; margin-top: 0.75rem;">✓ You Won! ₹${playerClaim.amount}</div>`;
+                        totalWinnings += playerClaim.amount;
+                    } else {
+                        claimButtons = `<div style="color: #ef4444; font-weight: 600; margin-top: 0.75rem;">✗ Too Late!</div>`;
+                    }
+                } else if (percentage === 100) {
+                    // Ready to claim
+                    claimButtons = `
+                        <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                            <button class="btn" style="background: #10b981; color: white; flex: 1; padding: 0.625rem; font-size: 0.875rem;" 
+                                    onclick="claimWin('${type}', true)">I Won! 🎉</button>
+                            <button class="btn" style="background: #ef4444; color: white; flex: 1; padding: 0.625rem; font-size: 0.875rem;" 
+                                    onclick="claimWin('${type}', false)">Too Late 😔</button>
+                        </div>
+                    `;
+                }
+                
+                progressItem.innerHTML = `
+                    <div class="progress-label">
+                        <span>${getGameTypeName(type)} (Prize: ₹${prize}) <span class="info-icon" onclick="showGameInfo('${type}')">i</span></span>
+                        <span>${completed}/${required}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill ${colorClass}" style="width: ${percentage}%"></div>
+                    </div>
+                    ${claimButtons}
+                `;
+                
+                progressSection.appendChild(progressItem);
+            });
+            
+            // Show total winnings
+            if (totalWinnings > 0 || Object.keys(playerClaims).length > 0) {
+                const totalDiv = document.createElement('div');
+                totalDiv.style.cssText = 'margin-top: 1.5rem; padding: 1rem; background: linear-gradient(to bottom right, #f0fdf4, #dcfce7); border-radius: 0.75rem; text-align: center; border: 1px solid #bbf7d0;';
+                totalDiv.innerHTML = `
+                    <h3 style="color: #059669; margin: 0; font-size: 1.25rem;">Total Winnings: ₹${totalWinnings}</h3>
+                `;
+                progressSection.appendChild(totalDiv);
+            }
+        }
+        
+        // New claim function
+        function claimWin(type, won) {
+            const claimsKey = `player_claims_${window.currentSessionKey || window.currentPhone}`;
+            const playerClaims = JSON.parse(sessionStorage.getItem(claimsKey) || '{}');
+            
+            // Disable both buttons immediately
+            const buttons = event.target.parentElement.querySelectorAll('button');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            });
+            
+            // Calculate prize amount
+            const basePrize = window.gamePrizes[type] || 0;
+            const amount = won ? basePrize : 0;
+            
+            playerClaims[type] = {
+                status: won ? 'won' : 'late',
+                amount: amount,
+                timestamp: new Date().toISOString()
+            };
+            
+            sessionStorage.setItem(claimsKey, JSON.stringify(playerClaims));
+            
+            // Update admin's winner record if won
+            if (won) {
+                const savedGame = localStorage.getItem('housieGame');
+                if (savedGame) {
+                    const gameState = JSON.parse(savedGame);
+                    if (!gameState.winners[type]) {
+                        // Find player name from phone
+                        const player = gameState.players.find(p => p.phone === window.currentPhone);
+                        const winnerName = player ? player.name : window.currentPhone;
+                        gameState.winners[type] = winnerName;
+                        localStorage.setItem('housieGame', JSON.stringify(gameState));
+                    }
+                }
+            }
+            
+            // Show feedback
+            if (won) {
+                alert(`Congratulations! You won ₹${amount} for ${getGameTypeName(type)}!`);
+                
+                // Show confetti if enabled for players
+                const savedGame = localStorage.getItem('housieGame');
+                if (savedGame) {
+                    const gameState = JSON.parse(savedGame);
+                    if (gameState.confettiPlayer) {
+                        showConfetti();
+                    }
+                }
+                
+                highlightWinningPattern(type);
+            } else {
+                alert(`Sorry, you were too late for ${getGameTypeName(type)}.`);
+            }
+            
+            // Update display
+            updateProgress();
+        }
+
+        // Check win condition - Fixed house1 and house2
+        function checkWinCondition(ticket, marked, type) {
+            const allNumbers = ticket.flat().filter(n => n > 0);
+            
+            switch (type) {
+                case 'firstFive':
+                    return marked.filter(n => allNumbers.includes(n)).length >= 5;
+                
+                case 'lucky7':
+                    return marked.filter(n => allNumbers.includes(n)).length >= 7;
+                
+                case 'topLine':
+                case 'breakfast':
+                    return ticket[0].filter(n => n > 0).every(n => marked.includes(n));
+                
+                case 'middleLine':
+                case 'lunch':
+                    return ticket[1].filter(n => n > 0).every(n => marked.includes(n));
+                
+                case 'bottomLine':
+                case 'dinner':
+                    return ticket[2].filter(n => n > 0).every(n => marked.includes(n));
+                
+                case 'corners':
+                    const corners = [];
+                    // Find actual corners
+                    for (let i = 0; i < 9; i++) {
+                        if (ticket[0][i] > 0) { corners.push(ticket[0][i]); break; }
+                    }
+                    for (let i = 8; i >= 0; i--) {
+                        if (ticket[0][i] > 0 && !corners.includes(ticket[0][i])) { 
+                            corners.push(ticket[0][i]); break; 
+                        }
+                    }
+                    for (let i = 0; i < 9; i++) {
+                        if (ticket[2][i] > 0 && !corners.includes(ticket[2][i])) { 
+                            corners.push(ticket[2][i]); break; 
+                        }
+                    }
+                    for (let i = 8; i >= 0; i--) {
+                        if (ticket[2][i] > 0 && !corners.includes(ticket[2][i])) { 
+                            corners.push(ticket[2][i]); break; 
+                        }
+                    }
+                    return corners.length === 4 && corners.every(n => marked.includes(n));
+                
+                case 'pyramid':
+                    // Pyramid pattern: center number in top row, 3 center numbers in middle row, 5 center numbers in bottom row
+                    const pyramidNumbers = [];
+                    // Top row - center position (column 4)
+                    if (ticket[0][4] > 0) pyramidNumbers.push(ticket[0][4]);
+                    // Middle row - positions 3, 4, 5
+                    for (let i = 3; i <= 5; i++) {
+                        if (ticket[1][i] > 0) pyramidNumbers.push(ticket[1][i]);
+                    }
+                    // Bottom row - positions 2, 3, 4, 5, 6
+                    for (let i = 2; i <= 6; i++) {
+                        if (ticket[2][i] > 0) pyramidNumbers.push(ticket[2][i]);
+                    }
+                    return pyramidNumbers.length >= 5 && pyramidNumbers.every(n => marked.includes(n));
+                
+                case 'railwayTrack':
+                    // Both top and bottom lines must be complete
+                    const topLine = ticket[0].filter(n => n > 0);
+                    const bottomLine = ticket[2].filter(n => n > 0);
+                    return topLine.every(n => marked.includes(n)) && bottomLine.every(n => marked.includes(n));
+                
+                case 'fullHouse':
+                    return allNumbers.every(n => marked.includes(n));
+                
+                case 'house1':
+                    // House 1 is also full house (all numbers)
+                    return allNumbers.every(n => marked.includes(n));
+                
+                case 'house2':
+                    // House 2 is also full house (all numbers)
+                    return allNumbers.every(n => marked.includes(n));
+                    
+                case 'firstTwoLines':
+                    // All numbers in first two lines must be marked
+                    const firstTwoLines = [...ticket[0], ...ticket[1]].filter(n => n > 0);
+                    return firstTwoLines.every(n => marked.includes(n));
+                
+                case 'lastTwoLines':
+                    // All numbers in last two lines must be marked
+                    const lastTwoLines = [...ticket[1], ...ticket[2]].filter(n => n > 0);
+                    return lastTwoLines.every(n => marked.includes(n));
+                
+                case 'centerColumn':
+                    const centerCol = [ticket[0][4], ticket[1][4], ticket[2][4]].filter(n => n > 0);
+                    return centerCol.length > 0 && centerCol.every(n => marked.includes(n));
+                
+                case 'bullsEye':
+                    const centerNum = ticket[1][4];
+                    return centerNum > 0 && marked.includes(centerNum);
+                
+                default:
+                    return false;
+            }
+        }
+
+        // Get game type name
+        function getGameTypeName(type) {
+            const gameType = allGameTypes.find(gt => gt.id === type);
+            return gameType ? gameType.name : type;
+        }
+
+        // Show winners
+        function showWinners() {
+            const modal = document.getElementById('winnersModal');
+            const winnersList = document.getElementById('winnersList');
+            const summaryDiv = document.getElementById('winnersSummary');
+            const summaryList = document.getElementById('winnersSummaryList');
+
+            winnersList.innerHTML = '';
+            summaryList.innerHTML = '';
+            summaryDiv.style.display = 'none';
+
+            // Map gameType id to human readable name
+            const gameTypeName = {};
+            allGameTypes.forEach(gt => { gameTypeName[gt.id] = gt.name; });
+
+            // Ensure winners computed based on called numbers
+            const playerWinnings = {}; // playerName -> total
+            const detectedWinners = {}; // gameType -> playerName
+
+            gameState.players.forEach(player => {
+                const ticket = player.ticket;
+                const markedFromCalled = ticket.flat().filter(n => n>0 && gameState.calledNumbers.includes(n));
+                gameState.gameTypes.forEach(type => {
+                    if (!detectedWinners[type] && checkWinCondition(ticket, markedFromCalled, type)) {
+                        detectedWinners[type] = player.name;
+                        if (!playerWinnings[player.name]) playerWinnings[player.name] = 0;
+                        playerWinnings[player.name] += gameState.prizes[type] || 0;
+                    }
+                });
+            });
+
+            // Render game-wise winners
+            gameState.gameTypes.forEach(type => {
+                const prize = gameState.prizes[type] || 0;
+                const winnerName = detectedWinners[type] || '---';
+                const div = document.createElement('div');
+                div.className = 'winner-item';
+                div.innerHTML = `<span>${gameTypeName[type]} (₹${prize})</span><span class="winner-badge">${winnerName}</span>`;
+                winnersList.appendChild(div);
+            });
+
+            // Render player-wise summary
+            const winnersNames = Object.keys(playerWinnings);
+            if (winnersNames.length > 0) {
+                summaryDiv.style.display = 'block';
+                winnersNames.sort((a,b)=>playerWinnings[b]-playerWinnings[a]);
+                winnersNames.forEach(name => {
+                    const item = document.createElement('div');
+                    item.className = 'winner-summary-item';
+                    item.innerHTML = `<span>${name}</span><span>₹${playerWinnings[name]}</span>`;
+                    summaryList.appendChild(item);
+                });
+            }
+
+            modal.style.display = 'flex';
+        }
+        
+        // Get winner name from phone or stored data
+        function getWinnerName(winnerIdentifier) {
+            // If it's already a name (not a phone number), return as is
+            if (winnerIdentifier && !winnerIdentifier.match(/^\+?[\d\s\-\(\)]+$/)) {
+                return winnerIdentifier;
+            }
+            
+            // Check if it's a phone number
+            const player = gameState.players.find(p => p.phone === winnerIdentifier);
+            if (player) return player.name;
+            
+            // Check in tickets
+            const ticketData = gameState.tickets[winnerIdentifier];
+            if (ticketData) return ticketData.name;
+            
+            // Return as is if not found
+            return winnerIdentifier;
+        }
+
+        // Show players
+        function showPlayers() {
+            const playersList = document.getElementById('playersList');
+            playersList.innerHTML = '';
+            
+            gameState.players.forEach(player => {
+                playersList.innerHTML += `
+                    <div class="player-item">
+                        <strong>${player.name}</strong><br>
+                        <small style="color: var(--text-secondary);">${player.phone}</small>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('playersModal').style.display = 'flex';
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // End game
+        function endGame() {
+            if (confirm('Are you sure you want to end this game?')) {
+                localStorage.removeItem('housieGame');
+                
+                if (gameState.autoPlayInterval) {
+                    clearInterval(gameState.autoPlayInterval);
+                }
+                
+                gameState = {
+                    gameTypes: [],
+                    players: [],
+                    calledNumbers: [],
+                    winners: {},
+                    isAutoPlay: false,
+                    autoPlayInterval: null,
+                    tickets: {}
+                };
+                
+                showLanding();
+            }
+        }
+
+        // Save game state
+        function saveGameState() {
+            localStorage.setItem('housieGame', JSON.stringify(gameState));
+        }
+
+        // Highlight winning pattern with auto-remove
+        function highlightWinningPattern(type) {
+            const ticket = window.currentTicket;
+            if (!ticket) return;
+            
+            const cells = document.querySelectorAll('.ticket-cell');
+            const allNumbers = ticket.flat().filter(n => n > 0);
+            
+            // Remove any existing highlights
+            cells.forEach(cell => cell.classList.remove('pattern-winner'));
+            
+            // Clear any existing timeout for this pattern
+            if (patternTimeouts[type]) {
+                clearTimeout(patternTimeouts[type]);
+            }
+            
+            // Get glow duration from saved state or default
+            const savedGame = localStorage.getItem('housieGame');
+            let glowDuration = 5;
+            if (savedGame) {
+                const state = JSON.parse(savedGame);
+                glowDuration = state.glowDuration || 5;
+            }
+            
+            setTimeout(() => {
+                let highlightedCells = [];
+                
+                switch (type) {
+                    case 'firstFive':
+                    case 'lucky7':
+                        // Highlight the first 5 or 7 marked numbers
+                        const marked = window.sessionMarked || [];
+                        const limit = type === 'firstFive' ? 5 : 7;
+                        let count = 0;
+                        cells.forEach((cell, index) => {
+                            if (cell.textContent && marked.includes(parseInt(cell.textContent)) && count < limit) {
+                                cell.classList.add('pattern-winner');
+                                highlightedCells.push(cell);
+                                count++;
+                            }
+                        });
+                        break;
+                        
+                    case 'topLine':
+                    case 'breakfast':
+                        // Highlight first row
+                        for (let i = 0; i < 9; i++) {
+                            if (ticket[0][i] > 0) {
+                                cells[i].classList.add('pattern-winner');
+                                highlightedCells.push(cells[i]);
+                            }
+                        }
+                        break;
+                        
+                    case 'middleLine':
+                    case 'lunch':
+                        // Highlight middle row
+                        for (let i = 0; i < 9; i++) {
+                            if (ticket[1][i] > 0) {
+                                cells[i + 9].classList.add('pattern-winner');
+                                highlightedCells.push(cells[i + 9]);
+                            }
+                        }
+                        break;
+                        
+                    case 'bottomLine':
+                    case 'dinner':
+                        // Highlight bottom row
+                        for (let i = 0; i < 9; i++) {
+                            if (ticket[2][i] > 0) {
+                                cells[i + 18].classList.add('pattern-winner');
+                                highlightedCells.push(cells[i + 18]);
+                            }
+                        }
+                        break;
+                        
+                    case 'corners':
+                        // Highlight corners
+                        const corners = [];
+                        // Top left
+                        for (let i = 0; i < 9; i++) {
+                            if (ticket[0][i] > 0) {
+                                cells[i].classList.add('pattern-winner');
+                                highlightedCells.push(cells[i]);
+                                break;
+                            }
+                        }
+                        // Top right
+                        for (let i = 8; i >= 0; i--) {
+                            if (ticket[0][i] > 0 && !cells[i].classList.contains('pattern-winner')) {
+                                cells[i].classList.add('pattern-winner');
+                                highlightedCells.push(cells[i]);
+                                break;
+                            }
+                        }
+                        // Bottom left
+                        for (let i = 0; i < 9; i++) {
+                            if (ticket[2][i] > 0 && !cells[i + 18].classList.contains('pattern-winner')) {
+                                cells[i + 18].classList.add('pattern-winner');
+                                highlightedCells.push(cells[i + 18]);
+                                break;
+                            }
+                        }
+                        // Bottom right
+                        for (let i = 8; i >= 0; i--) {
+                            if (ticket[2][i] > 0 && !cells[i + 18].classList.contains('pattern-winner')) {
+                                cells[i + 18].classList.add('pattern-winner');
+                                highlightedCells.push(cells[i + 18]);
+                                break;
+                            }
+                        }
+                        break;
+                        
+                    case 'pyramid':
+                        // Highlight pyramid pattern
+                        if (ticket[0][4] > 0) {
+                            cells[4].classList.add('pattern-winner');
+                            highlightedCells.push(cells[4]);
+                        }
+                        for (let i = 3; i <= 5; i++) {
+                            if (ticket[1][i] > 0) {
+                                cells[i + 9].classList.add('pattern-winner');
+                                highlightedCells.push(cells[i + 9]);
+                            }
+                        }
+                        for (let i = 2; i <= 6; i++) {
+                            if (ticket[2][i] > 0) {
+                                cells[i + 18].classList.add('pattern-winner');
+                                highlightedCells.push(cells[i + 18]);
+                            }
+                        }
+                        break;
+                        
+                    case 'railwayTrack':
+                        // Highlight top and bottom rows
+                        for (let i = 0; i < 9; i++) {
+                            if (ticket[0][i] > 0) {
+                                cells[i].classList.add('pattern-winner');
+                                highlightedCells.push(cells[i]);
+                            }
+                            if (ticket[2][i] > 0) {
+                                cells[i + 18].classList.add('pattern-winner');
+                                highlightedCells.push(cells[i + 18]);
+                            }
+                        }
+                        break;
+                        
+                    case 'firstTwoLines':
+                        // Highlight first two rows
+                        for (let i = 0; i < 9; i++) {
+                            if (ticket[0][i] > 0) {
+                                cells[i].classList.add('pattern-winner');
+                                highlightedCells.push(cells[i]);
+                            }
+                            if (ticket[1][i] > 0) {
+                                cells[i + 9].classList.add('pattern-winner');
+                                highlightedCells.push(cells[i + 9]);
+                            }
+                        }
+                        break;
+                        
+                    case 'lastTwoLines':
+                        // Highlight last two rows
+                        for (let i = 0; i < 9; i++) {
+                            if (ticket[1][i] > 0) {
+                                cells[i + 9].classList.add('pattern-winner');
+                                highlightedCells.push(cells[i + 9]);
+                            }
+                            if (ticket[2][i] > 0) {
+                                cells[i + 18].classList.add('pattern-winner');
+                                highlightedCells.push(cells[i + 18]);
+                            }
+                        }
+                        break;
+                        
+                    case 'centerColumn':
+                        // Highlight center column
+                        if (ticket[0][4] > 0) {
+                            cells[4].classList.add('pattern-winner');
+                            highlightedCells.push(cells[4]);
+                        }
+                        if (ticket[1][4] > 0) {
+                            cells[13].classList.add('pattern-winner');
+                            highlightedCells.push(cells[13]);
+                        }
+                        if (ticket[2][4] > 0) {
+                            cells[22].classList.add('pattern-winner');
+                            highlightedCells.push(cells[22]);
+                        }
+                        break;
+                        
+                    case 'bullsEye':
+                        // Highlight center cell
+                        if (ticket[1][4] > 0) {
+                            cells[13].classList.add('pattern-winner');
+                            highlightedCells.push(cells[13]);
+                        }
+                        break;
+                        
+                    case 'fullHouse':
+                    case 'house1':
+                    case 'house2':
+                        // Highlight all cells
+                        cells.forEach(cell => {
+                            if (cell.textContent) {
+                                cell.classList.add('pattern-winner');
+                                highlightedCells.push(cell);
+                            }
+                        });
+                        break;
+                }
+                
+                // Set timeout to remove highlights
+                patternTimeouts[type] = setTimeout(() => {
+                    highlightedCells.forEach(cell => {
+                        cell.classList.remove('pattern-winner');
+                    });
+                    delete patternTimeouts[type];
+                }, glowDuration * 1000);
+            }, 100);
+        }
+        
+        // Initialize on load
+        window.onload = init;
+    </script>
+</body>
+</html>
