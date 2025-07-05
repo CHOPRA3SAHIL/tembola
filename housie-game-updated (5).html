@@ -368,7 +368,7 @@
                 timestamp: Date.now(),
                 expiry: Date.now() + (cacheDuration * 60 * 1000), // Convert minutes to milliseconds
                 sessionId: window.currentSessionKey, // Store session key to differentiate sessions
-                isLocked: rageClickData[sessionKey] ? rageClickData[sessionKey].isLocked : false,
+                isLocked: rageClickData[phone] ? rageClickData[phone].isLocked : false,
                 warningLevel: rageClickWarnings[phone] || 0
             };
             
@@ -396,10 +396,10 @@
                 
                 // Restore lock state and warning level
                 if (cacheData.isLocked) {
-                    if (!rageClickData[sessionKey]) {
-                        rageClickData[sessionKey] = { clicks: [], isLocked: true };
+                    if (!rageClickData[phone]) {
+                        rageClickData[phone] = { clicks: [], isLocked: true };
                     } else {
-                        rageClickData[sessionKey].isLocked = true;
+                        rageClickData[phone].isLocked = true;
                     }
                 }
                 
@@ -528,7 +528,7 @@
                 if (lockedOverlay) lockedOverlay.remove();
                 
                 // Reset lock state but keep warning count
-                rageClickData[sessionKey] = {
+                rageClickData[phone] = {
                     clicks: [],
                     isLocked: false
                 };
@@ -541,7 +541,7 @@
         }
 
         // Check for rage clicking
-        rageClickData[sessionKey] {
+        function checkRageClick(phone) {
             const savedGame = localStorage.getItem('housieGame');
             if (!savedGame) return false;
             
@@ -550,11 +550,10 @@
             
             const threshold = state.rageClickThreshold || 3;
             const now = Date.now();
-            rageClickData[sessionKey]const sessionKey = `${phone}_${window.currentSessionKey || phone}`;            
-
+            
             // Initialize tracking for this phone if not exists
-            if (!rageClickData[sessionKey]) {
-                rageClickData[sessionKey] = {
+            if (!rageClickData[phone]) {
+                rageClickData[phone] = {
                     clicks: [],
                     isLocked: false
                 };
@@ -565,18 +564,18 @@
             }
             
             // If already locked, prevent marking
-            if (rageClickData[sessionKey].isLocked) {
+            if (rageClickData[phone].isLocked) {
                 return true;
             }
             
             // Add current click
-            rageClickData[sessionKey].clicks.push(now);
+            rageClickData[phone].clicks.push(now);
             
             // Remove clicks older than 1 second
-            rageClickData[sessionKey].clicks = rageClickData[sessionKey].clicks.filter(t => now - t < 1000);
+            rageClickData[phone].clicks = rageClickData[phone].clicks.filter(t => now - t < 1000);
             
             // Check if threshold exceeded
-            if (rageClickData[sessionKey].clicks.length > threshold) {
+            if (rageClickData[phone].clicks.length > threshold) {
                 rageClickWarnings[phone]++;
                 
                 // Show appropriate warning
@@ -585,7 +584,7 @@
                 } else if (rageClickWarnings[phone] === 2) {
                     showRageClickWarning(phone, 2);
                     // Lock the ticket
-                    rageClickData[sessionKey].isLocked = true;
+                    rageClickData[phone].isLocked = true;
                     lockTicket();
                     // Save lock state to cache
                     saveTicketCache(phone, window.sessionMarked || []);
@@ -593,7 +592,7 @@
                 } else if (rageClickWarnings[phone] === 3) {
                     showRageClickWarning(phone, 3);
                     // Lock the ticket
-                    rageClickData[sessionKey].isLocked = true;
+                    rageClickData[phone].isLocked = true;
                     lockTicket();
                     // Save lock state to cache
                     saveTicketCache(phone, window.sessionMarked || []);
@@ -603,41 +602,38 @@
                 }
                 
                 // Clear the clicks array
-                rageClickData[sessionKey].clicks = [];
+                rageClickData[phone].clicks = [];
             }
             
-            return rageClickData[sessionKey].isLocked;
+            return rageClickData[phone].isLocked;
         }
 
         // Lock ticket UI
-    function lockTicket() {
-    const ticketContainer = document.getElementById('ticketContainer');
-    if (!ticketContainer) return;
-    
-    // Check if already locked
-    if (ticketContainer.querySelector('.ticket-locked-overlay')) return;
-    
-    // Get current warning level
-    const warningLevel = rageClickWarnings[window.currentPhone] || 2;
-    const keyNumber = warningLevel >= 3 ? 2 : 1;
-    
-    // Create session key for the unlock button
-    const sessionKey = `${window.currentPhone}_${window.currentSessionKey || window.currentPhone}`;
-    
-    const overlay = document.createElement('div');
-    overlay.className = 'ticket-locked-overlay';
-    overlay.innerHTML = `
-        <div class="ticket-locked-content">
-            <h4>🔒 Ticket Locked</h4>
-            <p>Your ticket is locked due to rapid clicking.</p>
-            <p>Please get the unlock code from admin.</p>
-            <input type="text" id="passKeyInput" maxlength="4" placeholder="Enter pass key">
-            <button onclick="unlockTicket('${window.currentPhone}', ${keyNumber}, this, '${sessionKey}')">Unlock</button>
-        </div>
-    `;
-    
-    ticketContainer.appendChild(overlay);
-}
+        function lockTicket() {
+            const ticketContainer = document.getElementById('ticketContainer');
+            if (!ticketContainer) return;
+            
+            // Check if already locked
+            if (ticketContainer.querySelector('.ticket-locked-overlay')) return;
+            
+            // Get current warning level
+            const warningLevel = rageClickWarnings[window.currentPhone] || 2;
+            const keyNumber = warningLevel >= 3 ? 2 : 1;
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'ticket-locked-overlay';
+            overlay.innerHTML = `
+                <div class="ticket-locked-content">
+                    <h4>🔒 Ticket Locked</h4>
+                    <p>Your ticket is locked due to rapid clicking.</p>
+                    <p>Please get the unlock code from admin.</p>
+                    <input type="text" id="passKeyInput" maxlength="4" placeholder="Enter pass key">
+                    <button onclick="unlockTicket('${window.currentPhone}', ${keyNumber}, this)">Unlock</button>
+                </div>
+            `;
+            
+            ticketContainer.appendChild(overlay);
+        }
 
         // Update rage click display
         function updateRageClickDisplay() {
@@ -798,7 +794,6 @@
             const savedGame = localStorage.getItem('housieGame');
             if (savedGame) {
                 gameState = JSON.parse(savedGame);
- 
             }
             
             // Initialize number board
@@ -1457,11 +1452,6 @@
                 }
                 
                 gameState = JSON.parse(savedGame);
-if (!gameState.passKey1 || !gameState.passKey2) {
-            gameState.passKey1 = generatePassKey();
-            gameState.passKey2 = generatePassKey();
-            saveGameState();
-        }if (window.rageClickEnabled)
                 
                 // Migrate old winners format to new format
                 if (gameState.winners) {
@@ -2825,8 +2815,6 @@ if (!gameState.passKey1 || !gameState.passKey2) {
             window.sequenceMode = savedState.sequenceMode || 'random';
             window.rageClickEnabled = savedState.rageClickEnabled;
             window.rageClickThreshold = savedState.rageClickThreshold || 3;
-            window.passKey1 = ticketData.passKey1 || '';
-            window.passKey2 = ticketData.passKey2 || '';
             
             // Store predetermined data if available
             if (savedState.sequenceMode === 'predetermined') {
@@ -2891,8 +2879,8 @@ if (!gameState.passKey1 || !gameState.passKey2) {
             
             // Reset rage click data for this session
             // Load cached lock state first from loadTicketCache
-            if (!rageClickData[sessionKey]) {
-                rageClickData[sessionKey] = {
+            if (!rageClickData[phone]) {
+                rageClickData[phone] = {
                     clicks: [],
                     isLocked: false
                 };
@@ -2904,7 +2892,7 @@ if (!gameState.passKey1 || !gameState.passKey2) {
             }
             
             // Check if ticket should be locked from cache
-            if (rageClickData[sessionKey] && rageClickData[sessionKey].isLocked) {
+            if (rageClickData[phone] && rageClickData[phone].isLocked) {
                 // Re-lock the ticket after loading
                 setTimeout(() => {
                     lockTicket();
@@ -3020,8 +3008,8 @@ if (!gameState.passKey1 || !gameState.passKey2) {
             const isSameSession = window.cachedSessionId === sessionKey;
             
             // Load cached lock state from loadTicketCache
-            if (!rageClickData[sessionKey]) {
-                rageClickData[sessionKey] = {
+            if (!rageClickData[phone]) {
+                rageClickData[phone] = {
                     clicks: [],
                     isLocked: false
                 };
@@ -3033,7 +3021,7 @@ if (!gameState.passKey1 || !gameState.passKey2) {
             }
             
             // Check if ticket should be locked from cache
-            if (rageClickData[sessionKey] && rageClickData[sessionKey].isLocked) {
+            if (rageClickData[phone] && rageClickData[phone].isLocked) {
                 // Re-lock the ticket after DOM is ready
                 setTimeout(() => {
                     lockTicket();
@@ -3140,6 +3128,18 @@ if (!gameState.passKey1 || !gameState.passKey2) {
                 updateClaimButtons();
             }
             
+            // Add rage click info if enabled
+            if (window.rageClickEnabled) {
+                const rageClickInfo = document.createElement('div');
+                rageClickInfo.style.cssText = 'margin-top: 1rem; padding: 0.75rem; background: #fef3c7; border: 1px solid #fbbf24; border-radius: 0.5rem; font-size: 0.8125rem; text-align: center;';
+                rageClickInfo.innerHTML = `
+                    <p style="margin: 0; color: #92400e;">
+                        ⚠️ Rage Click Protection Active: Max ${window.rageClickThreshold} clicks/second
+                    </p>
+                `;
+                ticketDiv.appendChild(rageClickInfo);
+            }
+        }
         
         // Update claim buttons for manual mode
         function updateClaimButtons() {
